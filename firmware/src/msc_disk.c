@@ -13,7 +13,7 @@ void tud_msc_inquiry_cb(uint8_t lun, uint8_t vendor_id[8], uint8_t product_id[16
                         uint8_t product_rev[4]) {
   (void)lun;
   memcpy(vendor_id, "IRW     ", 8);
-  memcpy(product_id, "ppbox installer ", 16);
+  memcpy(product_id, "Pendulum install", 16);
   memcpy(product_rev, "0.1 ", 4);
 }
 

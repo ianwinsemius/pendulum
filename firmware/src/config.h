@@ -36,11 +36,11 @@ typedef struct {
   uint8_t  hid_invert;      // bit per channel
 
   uint32_t crc;
-} ppbox_config_t;
+} pendulum_config_t;
 
-extern ppbox_config_t g_cfg;
+extern pendulum_config_t g_cfg;
 
-void config_defaults(ppbox_config_t *c);
+void config_defaults(pendulum_config_t *c);
 void config_load(void);         // from flash, or defaults if missing/corrupt
 bool config_save(void);         // to flash
 void config_show(void (*out)(const char *));

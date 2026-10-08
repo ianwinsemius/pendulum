@@ -1,26 +1,26 @@
-ppbox - gamepad jog adapter for PathPilot
-==========================================
+Pendulum - gamepad jog adapter for PathPilot
+===========================================
 
 On the PathPilot controller, open a terminal and run:
 
-    bash /media/$USER/PPBOX/install.sh
+    bash /media/$USER/PENDULUM/install.sh
 
 (The drive may be mounted somewhere else; `ls /media/$USER` shows it.)
 
-Then unplug and replug the box. It comes back in run mode.
+Then unplug and replug Pendulum. It comes back in run mode.
 
 After a PathPilot update: hold Back+Start on the pendant for 3 seconds to
 get this drive back, and run install.sh again.
 
 Files
-  install.sh   install or reinstall (safe to repeat)
-  uninst.sh    remove everything install.sh added
-  probe.sh     read-only report of this controller's HAL setup
-  ppbox.py     the HAL component that reads the box
-  ppbox.hal    wiring and tuning
-  attach.sh    loads ppbox into a running PathPilot
-  watch.sh     keeps ppbox loaded across PathPilot restarts
-  ppbox.rul    udev rule (installed as 99-ppbox.rules)
+  install.sh      install or reinstall (safe to repeat)
+  uninst.sh       remove everything install.sh added
+  probe.sh        read-only report of this controller's HAL setup
+  pendulum.py     the HAL component that reads Pendulum
+  pendulum.hal    wiring and tuning
+  attach.sh       loads pendulum into a running PathPilot
+  watch.sh        keeps pendulum loaded across PathPilot restarts
+  pendulum.rul    udev rule (installed as 99-pendulum.rules)
 
 Pendant combos (hold Back + ...)
   Start, 3 s          switch run / config (this drive) mode

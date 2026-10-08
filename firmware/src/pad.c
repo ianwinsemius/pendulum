@@ -14,7 +14,7 @@
 
 #include "config.h"
 #include "logbuf.h"
-#include "ppbox.h"
+#include "pendulum.h"
 
 static critical_section_t pad_lock;
 static pad_state_t pad;
@@ -182,7 +182,7 @@ void host_core_main(void) {
   multicore_lockout_victim_init();
   sleep_ms(10);
   pio_usb_configuration_t pio_cfg = PIO_USB_DEFAULT_CONFIG;
-  pio_cfg.pin_dp = PPBOX_HOST_DP_PIN;
+  pio_cfg.pin_dp = PENDULUM_HOST_DP_PIN;
   tuh_configure(1, TUH_CFGID_RPI_PIO_USB_CONFIGURATION, &pio_cfg);
   tuh_init(1);
   while (true) tuh_task();

@@ -1,4 +1,4 @@
-// ppbox: gamepad in, fixed jog report out.
+// pendulum: gamepad in, fixed jog report out.
 // Core 0: native USB device (to PathPilot) + jog logic + console.
 // Core 1: PIO USB host (from the gamepad).
 #include "hardware/clocks.h"
@@ -12,7 +12,7 @@
 #include "console.h"
 #include "jog.h"
 #include "logbuf.h"
-#include "ppbox.h"
+#include "pendulum.h"
 
 #define MODE_MAGIC   0x4D4F4400u  // "MOD\0" | mode in low byte
 #define REPORT_MS    8
@@ -67,7 +67,7 @@ int main(void) {
       next_report = delayed_by_ms(next_report, REPORT_MS);
       pad_state_t p;
       pad_get(&p);
-      ppbox_report_t r;
+      pendulum_report_t r;
       int act = jog_step(&jog, &p, &g_cfg, to_ms_since_boot(get_absolute_time()), &r);
 
       // Always send, even when nothing changed: the seq byte is the heartbeat.

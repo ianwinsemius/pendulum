@@ -12,11 +12,11 @@
 
 #include "config.h"
 
-#define CFG_MAGIC  0x50504258u  // "PPBX"
+#define CFG_MAGIC  0x504E444Cu  // "PNDL"
 #define CFG_LAYOUT 1
 #define CFG_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
-ppbox_config_t g_cfg;
+pendulum_config_t g_cfg;
 
 static uint32_t crc32(const uint8_t *p, size_t n) {
   uint32_t c = 0xFFFFFFFFu;
@@ -27,11 +27,11 @@ static uint32_t crc32(const uint8_t *p, size_t n) {
   return ~c;
 }
 
-static uint32_t cfg_crc(const ppbox_config_t *c) {
-  return crc32((const uint8_t *)c, offsetof(ppbox_config_t, crc));
+static uint32_t cfg_crc(const pendulum_config_t *c) {
+  return crc32((const uint8_t *)c, offsetof(pendulum_config_t, crc));
 }
 
-void config_defaults(ppbox_config_t *c) {
+void config_defaults(pendulum_config_t *c) {
   memset(c, 0, sizeof(*c));
   c->magic = CFG_MAGIC;
   c->layout = CFG_LAYOUT;
@@ -56,7 +56,7 @@ void config_defaults(ppbox_config_t *c) {
 }
 
 void config_load(void) {
-  const ppbox_config_t *f = (const ppbox_config_t *)(XIP_BASE + CFG_OFFSET);
+  const pendulum_config_t *f = (const pendulum_config_t *)(XIP_BASE + CFG_OFFSET);
   if (f->magic == CFG_MAGIC && f->layout == CFG_LAYOUT && f->crc == cfg_crc(f)) {
     g_cfg = *f;
   } else {
@@ -67,12 +67,12 @@ void config_load(void) {
 static void do_flash_write(void *param) {
   static uint8_t page[FLASH_PAGE_SIZE * 2];
   memset(page, 0xFF, sizeof(page));
-  memcpy(page, param, sizeof(ppbox_config_t));
+  memcpy(page, param, sizeof(pendulum_config_t));
   flash_range_erase(CFG_OFFSET, FLASH_SECTOR_SIZE);
   flash_range_program(CFG_OFFSET, page, sizeof(page));
 }
 
-_Static_assert(sizeof(ppbox_config_t) <= FLASH_PAGE_SIZE * 2, "config too big");
+_Static_assert(sizeof(pendulum_config_t) <= FLASH_PAGE_SIZE * 2, "config too big");
 
 bool config_save(void) {
   g_cfg.magic = CFG_MAGIC;

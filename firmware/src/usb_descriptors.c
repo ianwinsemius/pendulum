@@ -6,7 +6,7 @@
 #include "pico/unique_id.h"
 #include "tusb.h"
 
-#include "ppbox.h"
+#include "pendulum.h"
 
 enum { ITF_CDC_COMM = 0, ITF_CDC_DATA, ITF_THIRD, ITF_TOTAL };
 
@@ -27,7 +27,7 @@ uint8_t const desc_hid_report[] = {
   0x15, 0x00,             //   Logical Minimum (0)
   0x26, 0xFF, 0x00,       //   Logical Maximum (255)
   0x75, 0x08,             //   Report Size (8)
-  0x95, sizeof(ppbox_report_t),  // Report Count (20)
+  0x95, sizeof(pendulum_report_t),  // Report Count (20)
   0x81, 0x02,             //   Input (Data, Var, Abs)
   0xC0                    // End Collection
 };
@@ -45,8 +45,8 @@ static tusb_desc_device_t desc_device = {
   .bDeviceSubClass = MISC_SUBCLASS_COMMON,
   .bDeviceProtocol = MISC_PROTOCOL_IAD,
   .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-  .idVendor = PPBOX_USB_VID,
-  .idProduct = PPBOX_USB_PID_RUN,
+  .idVendor = PENDULUM_USB_VID,
+  .idProduct = PENDULUM_USB_PID_RUN,
   .bcdDevice = 0x0100,
   .iManufacturer = 1,
   .iProduct = 2,
@@ -55,7 +55,7 @@ static tusb_desc_device_t desc_device = {
 };
 
 uint8_t const *tud_descriptor_device_cb(void) {
-  desc_device.idProduct = g_usb_mode == USB_MODE_CONFIG ? PPBOX_USB_PID_CFG : PPBOX_USB_PID_RUN;
+  desc_device.idProduct = g_usb_mode == USB_MODE_CONFIG ? PENDULUM_USB_PID_CFG : PENDULUM_USB_PID_RUN;
   return (uint8_t const *)&desc_device;
 }
 
@@ -85,11 +85,11 @@ static char serial_str[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
 static char const *string_desc[] = {
   (const char[]){0x09, 0x04},  // English
   "IRW Manufacturing",
-  "ppbox jog pendant adapter",
+  "Pendulum jog pendant adapter",
   serial_str,
-  "ppbox console",
-  "ppbox jog",
-  "ppbox installer drive",
+  "Pendulum console",
+  "Pendulum jog",
+  "Pendulum installer drive",
 };
 
 static uint16_t desc_str[33];

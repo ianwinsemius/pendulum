@@ -24,7 +24,7 @@ static int8_t group_of(uint8_t axis, uint8_t mode) {
   return (int8_t)axis;
 }
 
-static float shape(float v, const ppbox_config_t *c) {
+static float shape(float v, const pendulum_config_t *c) {
   float rel = c->release_pct / 100.0f;
   float a = fabsf(v);
   if (a <= rel) return 0.0f;
@@ -36,7 +36,7 @@ static float shape(float v, const ppbox_config_t *c) {
   return v < 0 ? -y : y;
 }
 
-static bool deadman_ok(const pad_state_t *p, const ppbox_config_t *c) {
+static bool deadman_ok(const pad_state_t *p, const pendulum_config_t *c) {
   switch (c->deadman) {
     case DM_LT: return p->lt > 128;
     case DM_RT: return p->rt > 128;
@@ -46,7 +46,7 @@ static bool deadman_ok(const pad_state_t *p, const ppbox_config_t *c) {
   }
 }
 
-static uint16_t deadman_button(const ppbox_config_t *c) {
+static uint16_t deadman_button(const pendulum_config_t *c) {
   return c->deadman == DM_LB ? BTN_LB : c->deadman == DM_RB ? BTN_RB : 0;
 }
 
@@ -55,11 +55,11 @@ static void drop_motion(jog_state_t *s) {
   for (int i = 0; i < STEP_COUNT; i++) s->step_state[i] = 0;
 }
 
-int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
-             uint32_t now, ppbox_report_t *out) {
+int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
+             uint32_t now, pendulum_report_t *out) {
   int action = JOG_ACT_NONE;
   memset(out, 0, sizeof *out);
-  out->version = PPBOX_PROTOCOL_VERSION;
+  out->version = PENDULUM_PROTOCOL_VERSION;
   out->seq = ++s->seq;
   out->owner = 0xFF;
 
@@ -70,7 +70,7 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
     memcpy(out->counts, s->counts, sizeof out->counts);
     return action;
   }
-  out->flags |= PPBOX_FLAG_CONNECTED;
+  out->flags |= PENDULUM_FLAG_CONNECTED;
 
   // ---- Mode combos: Back held suppresses everything ----
   if (p->buttons & BTN_BACK) {
@@ -89,7 +89,7 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
     }
     s->armed = false;  // require neutral again afterwards
     drop_motion(s);
-    out->flags |= PPBOX_FLAG_SUPPRESSED;
+    out->flags |= PENDULUM_FLAG_SUPPRESSED;
     memcpy(out->counts, s->counts, sizeof out->counts);
     return action;
   }
@@ -118,7 +118,7 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
       return action;
     }
   }
-  out->flags |= PPBOX_FLAG_ARMED;
+  out->flags |= PENDULUM_FLAG_ARMED;
   out->buttons = p->buttons & ~BTN_BACK;
 
   // ---- Deadman ----
@@ -127,7 +127,7 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
     memcpy(out->counts, s->counts, sizeof out->counts);
     return action;
   }
-  out->flags |= PPBOX_FLAG_DEADMAN;
+  out->flags |= PENDULUM_FLAG_DEADMAN;
 
   uint16_t dm_btn = deadman_button(c);
   bool step_held[STEP_COUNT];
@@ -167,7 +167,7 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
       if (vel[a] > 1.0f) vel[a] = 1.0f;
       if (vel[a] < -1.0f) vel[a] = -1.0f;
       out->vel[a] = (int16_t)lrintf(vel[a] * 32767.0f);
-      if (out->vel[a]) out->flags |= PPBOX_FLAG_MOTION;
+      if (out->vel[a]) out->flags |= PENDULUM_FLAG_MOTION;
     }
   }
 

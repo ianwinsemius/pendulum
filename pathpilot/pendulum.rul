@@ -1,6 +1,6 @@
-# /etc/udev/rules.d/99-ppbox.rules - installed by ppbox install.sh
-# Let the PathPilot user read the ppbox jog report.
+# /etc/udev/rules.d/99-pendulum.rules - installed by pendulum install.sh
+# Let the PathPilot user read the pendulum jog report.
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", MODE="0666"
-# Keep ModemManager away from the ppbox serial console.
+# Keep ModemManager away from the pendulum serial console.
 ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", ENV{ID_MM_DEVICE_IGNORE}="1"
 ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0002", ENV{ID_MM_DEVICE_IGNORE}="1"

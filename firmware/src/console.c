@@ -10,7 +10,7 @@
 #include "config.h"
 #include "console.h"
 #include "logbuf.h"
-#include "ppbox.h"
+#include "pendulum.h"
 
 static char line[96];
 static size_t line_len;
@@ -32,7 +32,7 @@ static void out(const char *s) {
 }
 
 static void help(void) {
-  out("ppbox " PPBOX_FW_VERSION " commands:\r\n"
+  out("Pendulum " PENDULUM_FW_VERSION " commands:\r\n"
       "  show                 list settings\r\n"
       "  set <key> <value>    change a setting (until reboot)\r\n"
       "  save                 store settings in flash\r\n"
@@ -122,7 +122,7 @@ void console_task(void) {
 }
 
 void console_banner(void) {
-  out(g_usb_mode == USB_MODE_CONFIG ? "\r\nppbox " PPBOX_FW_VERSION " - CONFIG mode\r\n"
-                                    : "\r\nppbox " PPBOX_FW_VERSION " - RUN mode\r\n");
+  out(g_usb_mode == USB_MODE_CONFIG ? "\r\nPendulum " PENDULUM_FW_VERSION " - CONFIG mode\r\n"
+                                    : "\r\nPendulum " PENDULUM_FW_VERSION " - RUN mode\r\n");
   out("type 'help'\r\n> ");
 }

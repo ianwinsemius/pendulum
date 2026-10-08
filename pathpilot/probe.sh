@@ -1,10 +1,10 @@
 #!/bin/bash
-# Collect what's needed to finalize ppbox.hal for this controller.
+# Collect what's needed to finalize pendulum.hal for this controller.
 # Read-only: changes nothing. Run with PathPilot open (machine can be off).
 # Output: probe.txt in the current folder (or the path given as $1).
 OUT="${1:-$PWD/probe.txt}"
 {
-  echo "== ppbox probe $(date)"
+  echo "== pendulum probe $(date)"
   echo "== system"; uname -a; cat /etc/lsb-release 2>/dev/null
   echo "== pathpilot"; ls -d ~/v* ~/tmc 2>/dev/null; cat ~/tmc/version.json 2>/dev/null
   ps -eo args | grep -E "linuxcnc|milltask|tormach|pathpilot" | grep -v grep | head -20
@@ -34,4 +34,4 @@ OUT="${1:-$PWD/probe.txt}"
   echo "== autostart"; ls ~/.config/autostart 2>&1; echo "XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP DESKTOP_SESSION=$DESKTOP_SESSION"
   echo "== sudo"; sudo -n true 2>&1 && echo "passwordless sudo" || echo "sudo needs password (or unavailable)"
 } >"$OUT" 2>&1
-echo "ppbox: wrote $OUT"
+echo "pendulum: wrote $OUT"

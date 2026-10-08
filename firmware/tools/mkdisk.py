@@ -13,7 +13,7 @@ import sys
 
 SECTOR = 512
 ROOT_ENTRIES = 64
-LABEL = b"PPBOX      "
+LABEL = b"PENDULUM   "
 NAME_RE = re.compile(r"^[a-z0-9_-]{1,8}(\.[a-z0-9_-]{1,3})?$")
 
 
@@ -55,7 +55,7 @@ def build(src):
                      1, 1, 0, total if total >= 65536 else 0)
     bs[36] = 0x80          # drive number
     bs[38] = 0x29          # extended boot signature
-    struct.pack_into("<I", bs, 39, 0x50504258)  # volume serial
+    struct.pack_into("<I", bs, 39, 0x504E444C)  # volume serial
     bs[43:54] = LABEL
     bs[54:62] = b"FAT12   "
     bs[510:512] = b"\x55\xAA"

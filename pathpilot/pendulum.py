@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""ppbox HAL component: reads the ppbox USB adapter and exposes HAL pins.
+"""pendulum HAL component: reads the pendulum USB adapter and exposes HAL pins.
 
 Loaded at runtime by attach.sh; nothing in PathPilot's own config is edited.
 Works with Python 2.7 (PathPilot 2.x) and Python 3.
 
-Safety rules (enforced here, independent of the box):
+Safety rules (enforced here, independent of Pendulum):
   * velocities are 0 unless reports are arriving, current, and the right
     protocol version;
   * a missing report for STALE_S seconds, a read error, or an unplug drops
     everything to 0 and stops generating jog counts;
-  * the box being unplugged does not unload this component, so HAL nets stay
+  * Pendulum being unplugged does not unload this component, so HAL nets stay
     intact and it reconnects by itself.
 """
 from __future__ import division, print_function
@@ -30,16 +30,16 @@ REPORT = struct.Struct("<BBBB4hH4B2x")
 STALE_S = 0.100
 RESCAN_S = 1.0
 AXES = "xyza"
-BUTTONS = [  # XInput bit layout, as sent by the box
+BUTTONS = [  # XInput bit layout, as sent by Pendulum
     ("dpad-up", 0x0001), ("dpad-down", 0x0002), ("dpad-left", 0x0004),
     ("dpad-right", 0x0008), ("start", 0x0010), ("l3", 0x0040), ("r3", 0x0080),
     ("lb", 0x0100), ("rb", 0x0200), ("guide", 0x0400), ("a", 0x1000),
     ("b", 0x2000), ("x", 0x4000), ("y", 0x8000),
 ]
 
-c = hal.component("ppbox")
-c.newpin("connected", hal.HAL_BIT, hal.HAL_OUT)    # box present and healthy
-c.newpin("pendant", hal.HAL_BIT, hal.HAL_OUT)      # gamepad plugged into box
+c = hal.component("pendulum")
+c.newpin("connected", hal.HAL_BIT, hal.HAL_OUT)    # Pendulum present and healthy
+c.newpin("pendant", hal.HAL_BIT, hal.HAL_OUT)      # gamepad plugged into Pendulum
 c.newpin("armed", hal.HAL_BIT, hal.HAL_OUT)
 c.newpin("motion", hal.HAL_BIT, hal.HAL_OUT)
 c.newpin("fault", hal.HAL_BIT, hal.HAL_OUT)        # version mismatch / stale
@@ -49,7 +49,7 @@ c.newpin("owner", hal.HAL_S32, hal.HAL_OUT)        # -1 none, 0 XY(planar)/X, 2 
 c.newpin("jog-scale", hal.HAL_FLOAT, hal.HAL_IN)        # e.g. 0.0001 in/count
 c.newpin("max-speed", hal.HAL_FLOAT, hal.HAL_IN)        # units/s at full stick
 # Single-step distance for D-pad presses (units). Wire to PathPilot's step
-# size if available, otherwise set it in ppbox.hal.
+# size if available, otherwise set it in pendulum.hal.
 c.newpin("step-size", hal.HAL_FLOAT, hal.HAL_IN)
 
 for a in AXES:
@@ -62,7 +62,7 @@ c.ready()
 
 
 def log(msg):
-    sys.stderr.write("ppbox: %s\n" % msg)
+    sys.stderr.write("pendulum: %s\n" % msg)
     sys.stderr.flush()
 
 
@@ -112,7 +112,7 @@ def apply_report(st, data, now):
     vel, buttons, counts = f[4:8], f[8], f[9:13]
     if version != PROTOCOL:
         if not c["fault"]:
-            log("protocol %d, expected %d: ignoring box (update ppbox.py or firmware)"
+            log("protocol %d, expected %d: ignoring Pendulum (update pendulum.py or firmware)"
                 % (version, PROTOCOL))
         c["fault"] = True
         return False
@@ -127,7 +127,7 @@ def apply_report(st, data, now):
         c[a + "-vel"] = st.vel[i]
     for name, bit in BUTTONS:
         c["btn-" + name] = bool(buttons & bit)
-    # D-pad steps: the box sends wrapping 8-bit counters; track deltas.
+    # D-pad steps: Pendulum sends wrapping 8-bit counters; track deltas.
     if st.last_raw_counts is not None:
         for i in range(4):
             d = (counts[i] - st.last_raw_counts[i]) & 0xFF

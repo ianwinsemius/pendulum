@@ -1,34 +1,34 @@
 #!/bin/bash
-# ppbox installer. Run from the ppbox drive:   bash /media/<you>/PPBOX/install.sh
+# pendulum installer. Run from the pendulum drive:   bash /media/<you>/PENDULUM/install.sh
 # Safe to run again (after a PathPilot update, or to upgrade).
 #
 # What it does:
-#   1. copies ppbox files to ~/ppbox (replacing any old copy)
-#   2. installs a udev rule so PathPilot can read the box  (asks for sudo)
-#   3. adds a login item that loads ppbox whenever PathPilot runs
-#   4. runs probe.sh and saves ~/ppbox/probe.txt
+#   1. copies pendulum files to ~/pendulum (replacing any old copy)
+#   2. installs a udev rule so PathPilot can read Pendulum  (asks for sudo)
+#   3. adds a login item that loads pendulum whenever PathPilot runs
+#   4. runs probe.sh and saves ~/pendulum/probe.txt
 # It does not edit any PathPilot file. uninst.sh reverses all of it.
 set -u
 SRC="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
-DEST="$HOME/ppbox"
-RULE=/etc/udev/rules.d/99-ppbox.rules
-AUTOSTART="$HOME/.config/autostart/ppbox-watch.desktop"
+DEST="$HOME/pendulum"
+RULE=/etc/udev/rules.d/99-pendulum.rules
+AUTOSTART="$HOME/.config/autostart/pendulum-watch.desktop"
 
-say() { echo "ppbox: $*"; }
+say() { echo "pendulum: $*"; }
 
 # 1. files
 say "installing to $DEST"
 mkdir -p "$DEST"
-for f in ppbox.py ppbox.hal attach.sh watch.sh probe.sh uninst.sh readme.txt; do
+for f in pendulum.py pendulum.hal attach.sh watch.sh probe.sh uninst.sh readme.txt; do
   if [ -f "$SRC/$f" ]; then
-    if [ "$f" = ppbox.hal ] && [ -f "$DEST/ppbox.hal" ] && ! cmp -s "$SRC/$f" "$DEST/$f"; then
-      cp "$DEST/ppbox.hal" "$DEST/ppbox.hal.bak"   # keep local tuning
-      say "kept your previous ppbox.hal as ppbox.hal.bak"
+    if [ "$f" = pendulum.hal ] && [ -f "$DEST/pendulum.hal" ] && ! cmp -s "$SRC/$f" "$DEST/$f"; then
+      cp "$DEST/pendulum.hal" "$DEST/pendulum.hal.bak"   # keep local tuning
+      say "kept your previous pendulum.hal as pendulum.hal.bak"
     fi
     cp "$SRC/$f" "$DEST/$f"
   fi
 done
-chmod +x "$DEST"/*.sh "$DEST/ppbox.py"
+chmod +x "$DEST"/*.sh "$DEST/pendulum.py"
 
 # Pick the Python that can import LinuxCNC's hal module.
 PY=""
@@ -43,14 +43,14 @@ else
 fi
 
 # 2. udev rule
-if [ -f "$RULE" ] && cmp -s "$SRC/ppbox.rul" "$RULE"; then
+if [ -f "$RULE" ] && cmp -s "$SRC/pendulum.rul" "$RULE"; then
   say "udev rule already installed"
 else
   say "installing udev rule (needs sudo)"
-  if sudo cp "$SRC/ppbox.rul" "$RULE" && sudo udevadm control --reload-rules && sudo udevadm trigger; then
+  if sudo cp "$SRC/pendulum.rul" "$RULE" && sudo udevadm control --reload-rules && sudo udevadm trigger; then
     say "udev rule installed"
   else
-    say "WARNING: udev rule NOT installed; ppbox will not be able to read the box"
+    say "WARNING: udev rule NOT installed; pendulum will not be able to read Pendulum"
   fi
 fi
 
@@ -59,7 +59,7 @@ mkdir -p "$(dirname "$AUTOSTART")"
 cat >"$AUTOSTART" <<EOF
 [Desktop Entry]
 Type=Application
-Name=ppbox watcher
+Name=pendulum watcher
 Exec=$DEST/watch.sh
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
@@ -69,5 +69,5 @@ nohup "$DEST/watch.sh" >/dev/null 2>&1 &
 
 # 4. probe
 "$DEST/probe.sh" "$DEST/probe.txt"
-say "done. Unplug and replug the box (it will come back in run mode)."
-say "Send $DEST/probe.txt so ppbox.hal can be finalized."
+say "done. Unplug and replug Pendulum (it will come back in run mode)."
+say "Send $DEST/probe.txt so pendulum.hal can be finalized."

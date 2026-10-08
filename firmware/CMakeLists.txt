@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 
-# ppbox firmware: gamepad -> fixed jog report translator for PathPilot.
+# pendulum firmware: gamepad -> fixed jog report translator for PathPilot.
 # Board: Raspberry Pi Pico W (RP2040). The Wi-Fi chip is not used.
 
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 
 include(pico_sdk_import.cmake)
 
-project(ppbox C CXX ASM)
+project(pendulum C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 
 pico_sdk_init()
@@ -46,7 +46,7 @@ add_custom_command(
   DEPENDS ${CMAKE_CURRENT_LIST_DIR}/tools/mkdisk.py ${PATHPILOT_FILES}
   COMMENT "Building installer drive image")
 
-add_executable(ppbox
+add_executable(pendulum
   src/main.c
   src/pad.c
   src/jog.c
@@ -60,14 +60,14 @@ add_executable(ppbox
   ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/hcd_pio_usb.c
 )
 
-target_include_directories(ppbox PRIVATE
+target_include_directories(pendulum PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/src
   ${tusb_xinput_src_SOURCE_DIR})
 
-target_compile_definitions(ppbox PRIVATE PIO_USB_USE_TINYUSB)
-target_compile_options(ppbox PRIVATE -Wall)
+target_compile_definitions(pendulum PRIVATE PIO_USB_USE_TINYUSB)
+target_compile_options(pendulum PRIVATE -Wall)
 
-target_link_libraries(ppbox PRIVATE
+target_link_libraries(pendulum PRIVATE
   pico_stdlib
   pico_multicore
   pico_flash
@@ -78,5 +78,5 @@ target_link_libraries(ppbox PRIVATE
   tinyusb_device
   tinyusb_host)
 
-# Output is ppbox.uf2: drag it onto the RPI-RP2 drive to flash.
-pico_add_extra_outputs(ppbox)
+# Output is pendulum.uf2: drag it onto the RPI-RP2 drive to flash.
+pico_add_extra_outputs(pendulum)

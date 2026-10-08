@@ -4,7 +4,7 @@
 #define JOG_H_
 
 #include "config.h"
-#include "ppbox.h"
+#include "pendulum.h"
 
 enum { STEP_XP = 0, STEP_XN, STEP_YP, STEP_YN, STEP_ZP, STEP_ZN, STEP_COUNT };
 enum { JOG_ACT_NONE = 0, JOG_ACT_TOGGLE_MODE, JOG_ACT_BOOTSEL };
@@ -26,7 +26,7 @@ typedef struct {
 void jog_init(jog_state_t *s);
 
 // Call at the report rate. Fills *out and returns a JOG_ACT_* request.
-int jog_step(jog_state_t *s, const pad_state_t *p, const ppbox_config_t *c,
-             uint32_t now_ms, ppbox_report_t *out);
+int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
+             uint32_t now_ms, pendulum_report_t *out);
 
 #endif

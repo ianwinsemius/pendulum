@@ -4,9 +4,9 @@
 #include <string.h>
 #include "jog.h"
 
-ppbox_config_t g_cfg;
+pendulum_config_t g_cfg;
 // minimal defaults (mirror config_defaults without flash deps)
-static void defaults(ppbox_config_t *c) {
+static void defaults(pendulum_config_t *c) {
   memset(c, 0, sizeof *c);
   c->claim_pct = 15; c->release_pct = 8; c->expo_pct = 40; c->max_pct = 100;
   c->mode = MODE_PLANAR; c->deadman = DM_NONE;
@@ -14,7 +14,7 @@ static void defaults(ppbox_config_t *c) {
   c->dpad_enable = 1; c->repeat_delay_ms = 400; c->repeat_hz = 8; c->combo_ms = 3000;
 }
 
-static jog_state_t s; static ppbox_config_t c; static pad_state_t p; static ppbox_report_t r;
+static jog_state_t s; static pendulum_config_t c; static pad_state_t p; static pendulum_report_t r;
 static uint32_t t;
 static int step(void) { t += 8; return jog_step(&s, &p, &c, t, &r); }
 static void reset(void) { defaults(&c); jog_init(&s); memset(&p, 0, sizeof p); t = 0; }
@@ -26,9 +26,9 @@ int main(void) {
 
   // 2. Connect with stick deflected: lockout, no motion until neutral
   reset(); p.connected = 1; p.lx = 20000; step();
-  assert((r.flags & PPBOX_FLAG_CONNECTED) && !(r.flags & PPBOX_FLAG_ARMED) && r.vel[0] == 0);
-  p.lx = 0; step(); assert(r.flags & PPBOX_FLAG_ARMED);
-  p.lx = 20000; step(); assert(r.vel[AXIS_X] > 0 && (r.flags & PPBOX_FLAG_MOTION));
+  assert((r.flags & PENDULUM_FLAG_CONNECTED) && !(r.flags & PENDULUM_FLAG_ARMED) && r.vel[0] == 0);
+  p.lx = 0; step(); assert(r.flags & PENDULUM_FLAG_ARMED);
+  p.lx = 20000; step(); assert(r.vel[AXIS_X] > 0 && (r.flags & PENDULUM_FLAG_MOTION));
 
   // 3. Planar: X+Y together allowed
   p.ly = 20000; step(); assert(r.vel[AXIS_X] > 0 && r.vel[AXIS_Y] > 0);
@@ -53,7 +53,7 @@ int main(void) {
 
   // 6. Deadman RT: no motion without trigger
   reset(); c.deadman = DM_RT; p.connected = 1; step();
-  p.lx = 30000; step(); assert(r.vel[AXIS_X] == 0 && !(r.flags & PPBOX_FLAG_DEADMAN));
+  p.lx = 30000; step(); assert(r.vel[AXIS_X] == 0 && !(r.flags & PENDULUM_FLAG_DEADMAN));
   p.rt = 255; step(); assert(r.vel[AXIS_X] > 0);
   p.rt = 0; step(); assert(r.vel[AXIS_X] == 0);
 
@@ -79,14 +79,14 @@ int main(void) {
   // 9. Combos: Back suppresses, Back+Start 3s toggles mode, then requires neutral
   reset(); p.connected = 1; step();
   p.lx = 30000; p.buttons = BTN_BACK; step();
-  assert((r.flags & PPBOX_FLAG_SUPPRESSED) && r.vel[0] == 0);
+  assert((r.flags & PENDULUM_FLAG_SUPPRESSED) && r.vel[0] == 0);
   p.lx = 0; p.buttons = BTN_BACK | BTN_START; int act = 0;
   for (int i = 0; i < 400 && !act; i++) act = step();
   assert(act == JOG_ACT_TOGGLE_MODE && t >= 3000);
   p.buttons = BTN_BACK | BTN_START | BTN_LB | BTN_RB; act = 0;
   for (int i = 0; i < 400 && !act; i++) act = step();
   assert(act == JOG_ACT_BOOTSEL);
-  p.buttons = 0; p.lx = 30000; step(); assert(!(r.flags & PPBOX_FLAG_ARMED) && r.vel[0] == 0);
+  p.buttons = 0; p.lx = 30000; step(); assert(!(r.flags & PENDULUM_FLAG_ARMED) && r.vel[0] == 0);
   p.lx = 0; step(); p.lx = 30000; step(); assert(r.vel[0] > 0);
 
   // 10. Back never appears in buttons; seq increments
