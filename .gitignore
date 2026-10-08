@@ -1,0 +1,6 @@
+firmware/build/
+firmware/test_jog
+.vscode/
+*.uf2
+__pycache__/
+*.pyc

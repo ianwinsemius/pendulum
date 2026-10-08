@@ -1,0 +1,34 @@
+# ppbox.hal - wiring for the ppbox jog adapter.
+# Loaded at runtime by attach.sh after the ppbox component is running.
+# NOTHING in PathPilot's own config files is changed.
+#
+# STATUS: DRAFT. The target pins below are standard LinuxCNC 2.8 names and
+# must be confirmed against probe.txt from your controller before use.
+# Run probe.sh, send the output, and this file gets finalized.
+#
+# Units: PCNC 1100 machine units are inches.
+
+# ---- Tuning ---------------------------------------------------------------
+setp ppbox.jog-scale  0.0001   # inches per jog count
+setp ppbox.max-speed  1.0      # inches/second at full stick (60 IPM) - start low
+setp ppbox.step-size  0.001    # inches per D-pad press
+
+# ---- Jogging (MPG-style, through motion's jog-counts inputs) --------------
+# These lines only work if the probe shows axis.<L>.jog-counts unconnected.
+# If PathPilot already drives them, they must be merged instead (do not run
+# this file until probe.txt has been checked).
+#
+# net ppbox-x-counts ppbox.x-jog-counts => axis.x.jog-counts
+# net ppbox-y-counts ppbox.y-jog-counts => axis.y.jog-counts
+# net ppbox-z-counts ppbox.z-jog-counts => axis.z.jog-counts
+# setp axis.x.jog-scale 0.0001
+# setp axis.y.jog-scale 0.0001
+# setp axis.z.jog-scale 0.0001
+# setp axis.x.jog-vel-mode 0
+# setp axis.y.jog-vel-mode 0
+# setp axis.z.jog-vel-mode 0
+# net ppbox-ok ppbox.connected => axis.x.jog-enable axis.y.jog-enable axis.z.jog-enable
+
+# ---- Step size from PathPilot (optional) ----------------------------------
+# PathPilot exposes its selected jog increment for the shuttle. Once the probe
+# shows the signal name, ppbox.step-size can follow it instead of the setp.
