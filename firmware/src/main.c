@@ -19,13 +19,27 @@
 
 uint8_t g_usb_mode = USB_MODE_RUN;
 
+// Let pending console output reach the PC, then drop off the bus so the
+// host sees a clean unplug before the board comes back as the new device.
+static void usb_goodbye(void) {
+  absolute_time_t until = make_timeout_time_ms(100);
+  while (absolute_time_diff_us(get_absolute_time(), until) > 0) {
+    tud_task();
+    tud_cdc_write_flush();
+  }
+  tud_disconnect();
+  sleep_ms(250);
+}
+
 void request_reboot(uint8_t next_mode) {
+  usb_goodbye();
   watchdog_hw->scratch[0] = MODE_MAGIC | next_mode;
-  watchdog_reboot(0, 0, 50);
+  watchdog_reboot(0, 0, 10);
   while (true) tight_loop_contents();
 }
 
 void request_bootsel(void) {
+  usb_goodbye();
   reset_usb_boot(0, 0);
 }
 

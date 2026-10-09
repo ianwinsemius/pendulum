@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define PENDULUM_FW_VERSION   "0.1.0"
+#define PENDULUM_FW_VERSION   "0.1.1"
 
 // USB identity. 0x1209 is pid.codes; 0x0001/0x0002 are its test PIDs.
 // Fine for your own shop. Get a real PID before distributing hardware.

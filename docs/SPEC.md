@@ -1,6 +1,6 @@
 # Pendulum — gamepad jog adapter for PathPilot
 
-**Status:** v0.1 draft. Firmware compiles and the jog logic passes host tests; nothing has run on hardware yet. Machine target: Tormach PCNC 1100, X/Y/Z.
+**Status:** v0.1.1. Verified on hardware (Pico W): firmware boots, serial console works, config mode serves the PENDULUM installer drive. Not yet tested: gamepad input, PathPilot side. Machine target: Tormach PCNC 1100, X/Y/Z.
 
 ## 1. Goal
 
@@ -208,3 +208,4 @@ Velocity is integrated into counts and fed to motion's MPG inputs (`axis.<L>.jog
 3. Does PathPilot run XDG autostart entries? If not, `watch.sh` needs another start hook (probe shows the session type).
 4. Can `pendulum.step-size` follow PathPilot's selected increment (`tormach.jog-gui-step-index`)?
 5. Real USB PID before building more than one.
+6. `run` from config mode didn't return to run mode on v0.1.0 (unplug/replug works). v0.1.1 drops off USB cleanly before rebooting; retest.

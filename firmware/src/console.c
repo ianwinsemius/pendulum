@@ -87,10 +87,20 @@ static void run_command(char *cmd) {
     bool on = argc > 1 && !strcasecmp(argv[1], "on");
     pad_set_log(on);
     out(on ? "logging on\r\n" : "logging off\r\n");
-  } else if (!strcasecmp(argv[0], "config")) request_reboot(USB_MODE_CONFIG);
-  else if (!strcasecmp(argv[0], "run")) request_reboot(USB_MODE_RUN);
-  else if (!strcasecmp(argv[0], "bootsel")) request_bootsel();
-  else out("unknown command; type 'help'\r\n");
+  } else if (!strcasecmp(argv[0], "config")) {
+    out("rebooting into CONFIG mode (installer drive); this session will close\r\n");
+    request_reboot(USB_MODE_CONFIG);
+  } else if (!strcasecmp(argv[0], "run")) {
+    out("rebooting into RUN mode; this session will close\r\n");
+    request_reboot(USB_MODE_RUN);
+  } else if (!strcasecmp(argv[0], "bootsel")) {
+    out("rebooting into the UF2 bootloader (RPI-RP2 drive); this session will close\r\n");
+    request_bootsel();
+  } else {
+    out("unknown command: '");
+    out(argv[0]);
+    out("' (type help for commands)\r\n");
+  }
 }
 
 void console_task(void) {
@@ -124,5 +134,5 @@ void console_task(void) {
 void console_banner(void) {
   out(g_usb_mode == USB_MODE_CONFIG ? "\r\nPendulum " PENDULUM_FW_VERSION " - CONFIG mode\r\n"
                                     : "\r\nPendulum " PENDULUM_FW_VERSION " - RUN mode\r\n");
-  out("type 'help'\r\n> ");
+  out("Type help for commands.\r\n> ");
 }
