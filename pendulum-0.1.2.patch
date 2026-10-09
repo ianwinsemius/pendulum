@@ -1,0 +1,133 @@
+diff --git a/firmware/src/console.c b/firmware/src/console.c
+index 8669a3e..a27eb7e 100644
+--- a/firmware/src/console.c
++++ b/firmware/src/console.c
+@@ -52,11 +52,19 @@ static void show_pad(void) {
+   pad_get(&p);
+   char b[160];
+   static const char *src[] = {"none", "XInput", "HID"};
++  const char *state = p.connected ? "connected"
++                    : p.source != PAD_NONE ? "plugged in, no input received yet"
++                                           : "nothing plugged in";
+   snprintf(b, sizeof b,
+            "pad: %s %s %04x:%04x btn=%04x lx=%d ly=%d rx=%d ry=%d lt=%u rt=%u\r\n",
+-           p.connected ? "connected" : "not connected", src[p.source < 3 ? p.source : 0],
++           state, src[p.source < 3 ? p.source : 0],
+            p.vid, p.pid, p.buttons, p.lx, p.ly, p.rx, p.ry, p.lt, p.rt);
+   out(b);
++  uint32_t nr, ne, nf; bool armed; uint8_t err;
++  pad_get_diag(&nr, &ne, &nf, &armed, &err);
++  snprintf(b, sizeof b, "     reading=%s reports=%lu errors=%lu (last %u) start_fail=%lu\r\n",
++           armed ? "yes" : "no", (unsigned long)nr, (unsigned long)ne, err, (unsigned long)nf);
++  out(b);
+ }
+ 
+ static void run_command(char *cmd) {
+diff --git a/firmware/src/pad.c b/firmware/src/pad.c
+index ee3ccad..fbfb674 100644
+--- a/firmware/src/pad.c
++++ b/firmware/src/pad.c
+@@ -20,6 +20,25 @@ static critical_section_t pad_lock;
+ static pad_state_t pad;
+ static volatile bool log_on;
+ 
++// Diagnostics, shown by the console 'pad' command.
++static volatile uint32_t n_reports, n_errors, n_rearm_fail;
++static volatile bool rx_armed;
++static volatile uint8_t last_err;
++
++void pad_get_diag(uint32_t *reports, uint32_t *errors, uint32_t *rearm_fail,
++                  bool *armed, uint8_t *err) {
++  *reports = n_reports; *errors = n_errors; *rearm_fail = n_rearm_fail;
++  *armed = rx_armed; *err = last_err;
++}
++
++static void arm_rx(uint8_t dev_addr, uint8_t instance) {
++  rx_armed = tuh_xinput_receive_report(dev_addr, instance);
++  if (!rx_armed) {
++    n_rearm_fail++;
++    logbuf_printf("pad: could not start reading reports\r\n");
++  }
++}
++
+ void pad_get(pad_state_t *out) {
+   critical_section_enter_blocking(&pad_lock);
+   *out = pad;
+@@ -57,6 +76,15 @@ static int16_t clamp16(int32_t v) {
+ void tuh_xinput_report_received_cb(uint8_t dev_addr, uint8_t instance,
+                                    xinputh_interface_t const *xid_itf, uint16_t len) {
+   (void)len;
++  if (xid_itf->last_xfer_result != XFER_RESULT_SUCCESS) {
++    n_errors++;
++    last_err = (uint8_t)xid_itf->last_xfer_result;
++    // Rate-limit: first few, then every 100th.
++    if (n_errors <= 5 || n_errors % 100 == 0)
++      logbuf_printf("pad: read error %u (count %lu)\r\n", last_err, (unsigned long)n_errors);
++  } else {
++    n_reports++;
++  }
+   if (xid_itf->last_xfer_result == XFER_RESULT_SUCCESS && xid_itf->connected &&
+       xid_itf->new_pad_data) {
+     const xinput_gamepad_t *x = &xid_itf->pad;
+@@ -78,7 +106,7 @@ void tuh_xinput_report_received_cb(uint8_t dev_addr, uint8_t instance,
+                     p.buttons, p.lx, p.ly, p.rx, p.ry, p.lt, p.rt);
+     }
+   }
+-  tuh_xinput_receive_report(dev_addr, instance);
++  arm_rx(dev_addr, instance);
+ }
+ 
+ void tuh_xinput_mount_cb(uint8_t dev_addr, uint8_t instance,
+@@ -94,19 +122,22 @@ void tuh_xinput_mount_cb(uint8_t dev_addr, uint8_t instance,
+   p.pid = pid;
+   pad_update(&p);  // connected stays false until the first real report
+ 
+-  if (itf->type == XBOX360_WIRELESS && !itf->connected) {
+-    tuh_xinput_receive_report(dev_addr, instance);
+-    return;
+-  }
+-  tuh_xinput_set_led(dev_addr, instance, 0, true);
+-  tuh_xinput_set_led(dev_addr, instance, 1, true);
+-  tuh_xinput_set_rumble(dev_addr, instance, 0, 0, true);
+-  tuh_xinput_receive_report(dev_addr, instance);
++  n_reports = n_errors = n_rearm_fail = 0;
++  last_err = 0;
++  // Start reading first. This runs inside enumeration, so no blocking calls
++  // here (the earlier blocking LED/rumble writes could stall the stack).
++  arm_rx(dev_addr, instance);
++  if (itf->type == XBOX360_WIRELESS && !itf->connected) return;
++  // Player-1 LED, non-blocking. Some third-party pads wait for this before
++  // they start sending input.
++  bool led = tuh_xinput_set_led(dev_addr, instance, 1, false);
++  logbuf_printf("pad: reading started=%d, LED cmd sent=%d\r\n", rx_armed, led);
+ }
+ 
+ void tuh_xinput_umount_cb(uint8_t dev_addr, uint8_t instance) {
+   (void)dev_addr; (void)instance;
+   logbuf_printf("pad: XInput unplugged\r\n");
++  rx_armed = false;
+   pad_disconnect();
+ }
+ 
+diff --git a/firmware/src/pendulum.h b/firmware/src/pendulum.h
+index 7cc4676..d4fa6f3 100644
+--- a/firmware/src/pendulum.h
++++ b/firmware/src/pendulum.h
+@@ -5,7 +5,7 @@
+ #include <stdbool.h>
+ #include <stdint.h>
+ 
+-#define PENDULUM_FW_VERSION   "0.1.1"
++#define PENDULUM_FW_VERSION   "0.1.2"
+ 
+ // USB identity. 0x1209 is pid.codes; 0x0001/0x0002 are its test PIDs.
+ // Fine for your own shop. Get a real PID before distributing hardware.
+@@ -78,6 +78,8 @@ void pad_get(pad_state_t *out);
+ void pad_set_log(bool on);
+ void host_core_main(void);
+ void pad_init(void);
++void pad_get_diag(uint32_t *reports, uint32_t *errors, uint32_t *rearm_fail,
++                  bool *armed, uint8_t *err);
+ 
+ // usb mode, chosen at boot
+ enum { USB_MODE_RUN = 0, USB_MODE_CONFIG = 1 };

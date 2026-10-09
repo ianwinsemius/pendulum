@@ -20,6 +20,25 @@ static critical_section_t pad_lock;
 static pad_state_t pad;
 static volatile bool log_on;
 
+// Diagnostics, shown by the console 'pad' command.
+static volatile uint32_t n_reports, n_errors, n_rearm_fail;
+static volatile bool rx_armed;
+static volatile uint8_t last_err;
+
+void pad_get_diag(uint32_t *reports, uint32_t *errors, uint32_t *rearm_fail,
+                  bool *armed, uint8_t *err) {
+  *reports = n_reports; *errors = n_errors; *rearm_fail = n_rearm_fail;
+  *armed = rx_armed; *err = last_err;
+}
+
+static void arm_rx(uint8_t dev_addr, uint8_t instance) {
+  rx_armed = tuh_xinput_receive_report(dev_addr, instance);
+  if (!rx_armed) {
+    n_rearm_fail++;
+    logbuf_printf("pad: could not start reading reports\r\n");
+  }
+}
+
 void pad_get(pad_state_t *out) {
   critical_section_enter_blocking(&pad_lock);
   *out = pad;
@@ -57,6 +76,15 @@ static int16_t clamp16(int32_t v) {
 void tuh_xinput_report_received_cb(uint8_t dev_addr, uint8_t instance,
                                    xinputh_interface_t const *xid_itf, uint16_t len) {
   (void)len;
+  if (xid_itf->last_xfer_result != XFER_RESULT_SUCCESS) {
+    n_errors++;
+    last_err = (uint8_t)xid_itf->last_xfer_result;
+    // Rate-limit: first few, then every 100th.
+    if (n_errors <= 5 || n_errors % 100 == 0)
+      logbuf_printf("pad: read error %u (count %lu)\r\n", last_err, (unsigned long)n_errors);
+  } else {
+    n_reports++;
+  }
   if (xid_itf->last_xfer_result == XFER_RESULT_SUCCESS && xid_itf->connected &&
       xid_itf->new_pad_data) {
     const xinput_gamepad_t *x = &xid_itf->pad;
@@ -78,7 +106,7 @@ void tuh_xinput_report_received_cb(uint8_t dev_addr, uint8_t instance,
                     p.buttons, p.lx, p.ly, p.rx, p.ry, p.lt, p.rt);
     }
   }
-  tuh_xinput_receive_report(dev_addr, instance);
+  arm_rx(dev_addr, instance);
 }
 
 void tuh_xinput_mount_cb(uint8_t dev_addr, uint8_t instance,
@@ -94,19 +122,22 @@ void tuh_xinput_mount_cb(uint8_t dev_addr, uint8_t instance,
   p.pid = pid;
   pad_update(&p);  // connected stays false until the first real report
 
-  if (itf->type == XBOX360_WIRELESS && !itf->connected) {
-    tuh_xinput_receive_report(dev_addr, instance);
-    return;
-  }
-  tuh_xinput_set_led(dev_addr, instance, 0, true);
-  tuh_xinput_set_led(dev_addr, instance, 1, true);
-  tuh_xinput_set_rumble(dev_addr, instance, 0, 0, true);
-  tuh_xinput_receive_report(dev_addr, instance);
+  n_reports = n_errors = n_rearm_fail = 0;
+  last_err = 0;
+  // Start reading first. This runs inside enumeration, so no blocking calls
+  // here (the earlier blocking LED/rumble writes could stall the stack).
+  arm_rx(dev_addr, instance);
+  if (itf->type == XBOX360_WIRELESS && !itf->connected) return;
+  // Player-1 LED, non-blocking. Some third-party pads wait for this before
+  // they start sending input.
+  bool led = tuh_xinput_set_led(dev_addr, instance, 1, false);
+  logbuf_printf("pad: reading started=%d, LED cmd sent=%d\r\n", rx_armed, led);
 }
 
 void tuh_xinput_umount_cb(uint8_t dev_addr, uint8_t instance) {
   (void)dev_addr; (void)instance;
   logbuf_printf("pad: XInput unplugged\r\n");
+  rx_armed = false;
   pad_disconnect();
 }
 

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define PENDULUM_FW_VERSION   "0.1.1"
+#define PENDULUM_FW_VERSION   "0.1.2"
 
 // USB identity. 0x1209 is pid.codes; 0x0001/0x0002 are its test PIDs.
 // Fine for your own shop. Get a real PID before distributing hardware.
@@ -78,6 +78,8 @@ void pad_get(pad_state_t *out);
 void pad_set_log(bool on);
 void host_core_main(void);
 void pad_init(void);
+void pad_get_diag(uint32_t *reports, uint32_t *errors, uint32_t *rearm_fail,
+                  bool *armed, uint8_t *err);
 
 // usb mode, chosen at boot
 enum { USB_MODE_RUN = 0, USB_MODE_CONFIG = 1 };

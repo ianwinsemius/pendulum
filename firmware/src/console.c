@@ -52,10 +52,18 @@ static void show_pad(void) {
   pad_get(&p);
   char b[160];
   static const char *src[] = {"none", "XInput", "HID"};
+  const char *state = p.connected ? "connected"
+                    : p.source != PAD_NONE ? "plugged in, no input received yet"
+                                           : "nothing plugged in";
   snprintf(b, sizeof b,
            "pad: %s %s %04x:%04x btn=%04x lx=%d ly=%d rx=%d ry=%d lt=%u rt=%u\r\n",
-           p.connected ? "connected" : "not connected", src[p.source < 3 ? p.source : 0],
+           state, src[p.source < 3 ? p.source : 0],
            p.vid, p.pid, p.buttons, p.lx, p.ly, p.rx, p.ry, p.lt, p.rt);
+  out(b);
+  uint32_t nr, ne, nf; bool armed; uint8_t err;
+  pad_get_diag(&nr, &ne, &nf, &armed, &err);
+  snprintf(b, sizeof b, "     reading=%s reports=%lu errors=%lu (last %u) start_fail=%lu\r\n",
+           armed ? "yes" : "no", (unsigned long)nr, (unsigned long)ne, err, (unsigned long)nf);
   out(b);
 }
 
