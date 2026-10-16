@@ -1,5 +1,7 @@
 # Pendulum
 
+[!note] This is in development and is only tested as far as the gamepad>rpi. 
+
 Gamepad → PathPilot jog pendant adapter on a Raspberry Pi Pico W. Pendulum holds all the mapping and safety logic; PathPilot gets a small HAL component that is installed from a USB drive Pendulum itself provides. Full design: [docs/SPEC.md](docs/SPEC.md).
 
 ```
