@@ -1,0 +1,1280 @@
+== pendulum probe 2 Sun Oct 25 21:35:05 PDT 2026
+== system
+Linux tormachpcnc 4.11.9-rt7 #1 SMP PREEMPT RT Fri Aug 4 12:03:32 CDT 2017 x86_64 x86_64 x86_64 GNU/Linux
+DISTRIB_ID=LinuxMint
+DISTRIB_RELEASE=17.3
+DISTRIB_CODENAME=rosa
+DISTRIB_DESCRIPTION="Linux Mint 17.3 Rosa"
+== pathpilot
+lrwxrwxrwx  1 operator operator    7 May 20 17:56 /home/operator/tmc -> v2.14.3
+drwxr-xr-x 15 operator operator 4096 Nov 14  2017 /home/operator/v2.0.0
+drwxrwxr-x 24 operator operator 4096 May 20 12:04 /home/operator/v2.12.5
+drwxrwxr-x 24 operator operator 4096 May 20 18:02 /home/operator/v2.14.3
+{
+    "build": 3,
+    "kernels": [
+        "4.11.9-rt7"
+    ], 
+    "status": "",
+    "version": "v2.14.3"
+}
+avahi-daemon: running [tormachpcnc.local]
+tee -a /home/operator/gcode/logfiles/pathpilotlog.txt
+python /home/operator/v2.14.3/python/pathpilotmanager.py
+/bin/bash /home/operator/tmc/scripts/start_linuxcnc /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+linuxcncsvr -ini /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+milltask -ini /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+halui -ini /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+hwmon /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+tormachheightgauge
+python /home/operator/tmc/python/tormach_mill_ui.py -ini /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+python /home/operator/tmc/python/tormach_console.py -n tormach_console
+/bin/bash /home/operator/tmc/scripts/dxf2gcode_service.sh --config-folder /home/operator/tmc/configs/tormach_mill/dxf2gcode
+python /home/operator/tmc/venv3/bin/dxf2gcode_dbus --config-folder /home/operator/tmc/configs/tormach_mill/dxf2gcode
+== environment (source: running: copied from milltask pid 2824)
+PATH=/home/operator/v2.14.3/venv/bin:/home/operator/.local/bin:/home/operator/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/operator/teamviewerqs:/home/operator/tmc/python:/home/operator/tmc/bin:/home/operator/tmc/scripts
+PYTHONPATH=/home/operator/tmc/python:/home/operator/tmc/configs/tormach_mill/python:/home/operator/tmc/python:/home/operator/tmc/lib/python:/home/operator/tmc/lib/python/support:/home/operator/tmc/python/config_chooser:/home/operator/tmc/python/pplogin:/home/operator/tmc/python/pp_hub:/home/operator/tmc/python/shape_library:/home/operator/tmc/python/ethercat_utilities:/home/operator/gcode/python
+LD_LIBRARY_PATH=/home/operator/tmc/lib
+EMC2_BIN_DIR=/home/operator/tmc/bin
+EMC2_HOME=/home/operator/tmc
+EMC2_RTLIB_DIR=/home/operator/tmc/rtlib
+EMC2VERSION=2.8.0~pre1
+HAL_RTMOD_DIR=/home/operator/tmc/rtlib
+INI_FILE_NAME=/home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+LINUXCNC_BIN_DIR=/home/operator/tmc/bin
+LINUXCNC_HOME=/home/operator/tmc
+LINUXCNC_RTLIB_DIR=/home/operator/tmc/rtlib
+LINUXCNCVERSION=2.8.0~pre1
+== milltask processes
+USER       PID  PPID COMMAND         COMMAND
+operator  2824     1 milltask        milltask -ini /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+== halcmd
+/home/operator/tmc/bin/halcmd
+HAL reachable
+== python
+python (/home/operator/v2.14.3/venv/bin/python): 2.7.6 hal OK /home/operator/tmc/lib/python/support/hal.pyc
+python2 (/home/operator/v2.14.3/venv/bin/python2): 2.7.6 hal OK /home/operator/tmc/lib/python/support/hal.pyc
+python2.7 (/home/operator/v2.14.3/venv/bin/python2.7): 2.7.6 hal OK /home/operator/tmc/lib/python/support/hal.pyc
+python3 (/usr/bin/python3): ImportError: /home/operator/tmc/lib/python/_hal.so: undefined symbol: _Py_ZeroStruct
+== components
+Loaded HAL Components:
+ID      Type  Name                                            PID   State
+   885  User  halcmd7857                                       7857 ready
+   237  User  pendulum                                         4184 ready
+   159  User  interp2824                                       2824 ready
+   122  RT    milljogtranslator                                     ready
+   119  User  shuttlexpress4                                   3048 ready
+   111  RT    stopwatch                                             ready
+   108  RT    time                                                  ready
+   103  User  blackbox_recorder                                3039 ready
+    97  User  tormach_console                                  3036 ready
+    91  User  tormach                                          2911 ready
+    89  User  remap                                            2824 ready
+    88  User  inihal                                           2824 ready
+    85  User  usbio                                            2903 ready
+    81  User  tormachheightgauge                               2902 ready
+    77  User  zbotschnozz                                      2889 ready
+    73  User  zbotatc                                          2886 ready
+    69  RT    s3sbob                                                ready
+    66  RT    lut5                                                  ready
+    63  RT    and2                                                  ready
+    60  RT    tormachspindle                                        ready
+    57  RT    pid                                                   ready
+    54  RT    debounce                                              ready
+    51  RT    or2                                                   ready
+    48  RT    xor2                                                  ready
+    45  RT    gearchange                                            ready
+    42  RT    not                                                   ready
+    39  RT    toggle                                                ready
+    36  RT    estop_latch                                           ready
+    33  RT    hm2_eth                                               ready
+    30  RT    hostmot2                                              ready
+    27  RT    __servo-thread                                        ready
+    26  RT    motmod                                                ready
+    23  User  hwmon                                            2843 ready
+    19  RT    square3kins                                           ready
+    13  User  halui                                            2838 ready
+     6  User  iocontrol                                        2824 ready
+
+== jog pins (axis/joint)
+    26  s32   IN              0  axis.0.jog-counts
+    26  bit   IN          FALSE  axis.0.jog-enable
+    26  float IN              0  axis.0.jog-max-vel
+    26  float IN              0  axis.0.jog-scale
+    26  bit   IN          FALSE  axis.0.jog-vel-mode
+    26  s32   IN              0  axis.1.jog-counts
+    26  bit   IN          FALSE  axis.1.jog-enable
+    26  float IN              0  axis.1.jog-max-vel
+    26  float IN              0  axis.1.jog-scale
+    26  bit   IN          FALSE  axis.1.jog-vel-mode
+    26  s32   IN              0  axis.2.jog-counts
+    26  bit   IN          FALSE  axis.2.jog-enable
+    26  float IN              0  axis.2.jog-max-vel
+    26  float IN              0  axis.2.jog-scale
+    26  bit   IN          FALSE  axis.2.jog-vel-mode
+    26  s32   IN              0  axis.3.jog-counts
+    26  bit   IN          FALSE  axis.3.jog-enable
+    26  float IN              0  axis.3.jog-max-vel
+    26  float IN              0  axis.3.jog-scale
+    26  bit   IN          FALSE  axis.3.jog-vel-mode
+== jog params
+   122  s32   RW          31977  milljogtranslator.tmax
+   122  bit   RO          FALSE  milljogtranslator.tmax-increased
+== halui jog pins
+    13  bit   IN          FALSE  halui.estop.activate
+    13  bit   OUT          TRUE  halui.estop.is-activated
+    13  bit   IN          FALSE  halui.estop.reset
+    13  float IN            0.2  halui.jog-deadband
+    13  float IN              0  halui.jog-speed
+    13  float IN              0  halui.jog.0.analog
+    13  float IN              0  halui.jog.0.increment
+    13  bit   IN          FALSE  halui.jog.0.increment-minus
+    13  bit   IN          FALSE  halui.jog.0.increment-plus
+    13  bit   IN          FALSE  halui.jog.0.minus
+    13  bit   IN          FALSE  halui.jog.0.plus
+    13  float IN              0  halui.jog.1.analog
+    13  float IN              0  halui.jog.1.increment
+    13  bit   IN          FALSE  halui.jog.1.increment-minus
+    13  bit   IN          FALSE  halui.jog.1.increment-plus
+    13  bit   IN          FALSE  halui.jog.1.minus
+    13  bit   IN          FALSE  halui.jog.1.plus
+    13  float IN              0  halui.jog.2.analog
+    13  float IN              0  halui.jog.2.increment
+    13  bit   IN          FALSE  halui.jog.2.increment-minus
+    13  bit   IN          FALSE  halui.jog.2.increment-plus
+    13  bit   IN          FALSE  halui.jog.2.minus
+    13  bit   IN          FALSE  halui.jog.2.plus
+    13  float IN              0  halui.jog.3.analog
+    13  float IN              0  halui.jog.3.increment
+    13  bit   IN          FALSE  halui.jog.3.increment-minus
+    13  bit   IN          FALSE  halui.jog.3.increment-plus
+    13  bit   IN          FALSE  halui.jog.3.minus
+    13  bit   IN          FALSE  halui.jog.3.plus
+    13  float IN              0  halui.jog.selected.increment
+    13  bit   IN          FALSE  halui.jog.selected.increment-minus
+    13  bit   IN          FALSE  halui.jog.selected.increment-plus
+    13  bit   IN          FALSE  halui.jog.selected.minus
+    13  bit   IN          FALSE  halui.jog.selected.plus
+    13  bit   OUT         FALSE  halui.machine.is-on
+    13  bit   IN          FALSE  halui.mode.auto
+    13  bit   OUT         FALSE  halui.mode.is-auto
+    13  bit   OUT          TRUE  halui.mode.is-joint
+    13  bit   OUT          TRUE  halui.mode.is-manual
+    13  bit   OUT         FALSE  halui.mode.is-mdi
+    13  bit   OUT         FALSE  halui.mode.is-teleop
+    13  bit   IN          FALSE  halui.mode.joint
+    13  bit   IN          FALSE  halui.mode.manual
+    13  bit   IN          FALSE  halui.mode.mdi
+    13  bit   IN          FALSE  halui.mode.teleop
+== tormach / shuttle pins
+   122  bit   IN          FALSE  milljogtranslator.ax-butt-0 <== sxp.x-button
+   122  bit   IN          FALSE  milljogtranslator.ax-butt-1 <== sxp.y-button
+   122  bit   IN          FALSE  milljogtranslator.ax-butt-2 <== sxp.z-button
+   122  bit   IN          FALSE  milljogtranslator.ax-butt-3 <== sxp.a-button
+   122  float OUT             0  milljogtranslator.ax-jog-speed-signed ==> sxp.jog-ring-speed-signed
+   122  bit   OUT         FALSE  milljogtranslator.ax-out-0-sel ==> sxp.xen-button
+   122  bit   OUT          TRUE  milljogtranslator.ax-out-1-sel ==> sxp.yen-button
+   122  bit   OUT         FALSE  milljogtranslator.ax-out-2-sel ==> sxp.zen-button
+   122  bit   OUT         FALSE  milljogtranslator.ax-out-3-sel ==> sxp.aen-button
+   122  s32   OUT             1  milljogtranslator.ax-selected-axis ==> sxp.selected-axis
+   122  bit   IN          FALSE  milljogtranslator.cycle-stepsizes <== sxp.step-button
+   122  u32   IN     0x00000001  milljogtranslator.gui-step-index <== sxp.gui_step_index
+   122  bit   IN          FALSE  milljogtranslator.is-metric <== sxp.is_metric
+   122  s32   IN              0  milljogtranslator.ring-raw <== sxp.spring-wheel
+   122  u32   OUT    0x00000001  milljogtranslator.shuttle-step-index ==> sxp.shuttle_step_index
+   237  s32   OUT             0  pendulum.a-jog-counts
+   237  s32   OUT             0  pendulum.a-steps
+   237  float OUT             0  pendulum.a-vel
+   237  bit   OUT         FALSE  pendulum.armed
+   237  bit   OUT         FALSE  pendulum.btn-a
+   237  bit   OUT         FALSE  pendulum.btn-b
+   237  bit   OUT         FALSE  pendulum.btn-dpad-down
+   237  bit   OUT         FALSE  pendulum.btn-dpad-left
+   237  bit   OUT         FALSE  pendulum.btn-dpad-right
+   237  bit   OUT         FALSE  pendulum.btn-dpad-up
+   237  bit   OUT         FALSE  pendulum.btn-guide
+   237  bit   OUT         FALSE  pendulum.btn-l3
+   237  bit   OUT         FALSE  pendulum.btn-lb
+   237  bit   OUT         FALSE  pendulum.btn-r3
+   237  bit   OUT         FALSE  pendulum.btn-rb
+   237  bit   OUT         FALSE  pendulum.btn-start
+   237  bit   OUT         FALSE  pendulum.btn-x
+   237  bit   OUT         FALSE  pendulum.btn-y
+   237  bit   OUT         FALSE  pendulum.connected
+   237  bit   OUT         FALSE  pendulum.fault
+   237  float IN         0.0001  pendulum.jog-scale
+   237  float IN              1  pendulum.max-speed
+   237  bit   OUT         FALSE  pendulum.motion
+   237  s32   OUT            -1  pendulum.owner
+   237  bit   OUT         FALSE  pendulum.pendant
+   237  float IN          0.001  pendulum.step-size
+   237  s32   OUT             0  pendulum.x-jog-counts
+   237  s32   OUT             0  pendulum.x-steps
+   237  float OUT             0  pendulum.x-vel
+   237  s32   OUT             0  pendulum.y-jog-counts
+   237  s32   OUT             0  pendulum.y-steps
+   237  float OUT             0  pendulum.y-vel
+   237  s32   OUT             0  pendulum.z-jog-counts
+   237  s32   OUT             0  pendulum.z-steps
+   237  float OUT             0  pendulum.z-vel
+   119  bit   OUT         FALSE  shuttlexpress4.0.button-0 ==> sxp.x-button
+   119  bit   OUT          TRUE  shuttlexpress4.0.button-0-not
+   119  bit   OUT         FALSE  shuttlexpress4.0.button-1 ==> sxp.y-button
+   119  bit   OUT          TRUE  shuttlexpress4.0.button-1-not
+   119  bit   OUT         FALSE  shuttlexpress4.0.button-2 ==> sxp.z-button
+   119  bit   OUT          TRUE  shuttlexpress4.0.button-2-not
+   119  bit   OUT         FALSE  shuttlexpress4.0.button-3 ==> sxp.a-button
+   119  bit   OUT          TRUE  shuttlexpress4.0.button-3-not
+   119  bit   OUT         FALSE  shuttlexpress4.0.button-4 ==> sxp.step-button
+   119  bit   OUT          TRUE  shuttlexpress4.0.button-4-not
+   119  s32   OUT           176  shuttlexpress4.0.counts ==> sxp.counts-smoothed
+   119  float OUT             0  shuttlexpress4.0.spring-wheel-f
+   119  s32   OUT             0  shuttlexpress4.0.spring-wheel-s32 ==> sxp.spring-wheel
+   119  bit   OUT         FALSE  shuttlexpress4.1.button-0
+   119  bit   OUT          TRUE  shuttlexpress4.1.button-0-not
+   119  bit   OUT         FALSE  shuttlexpress4.1.button-1
+   119  bit   OUT          TRUE  shuttlexpress4.1.button-1-not
+   119  bit   OUT         FALSE  shuttlexpress4.1.button-2
+   119  bit   OUT          TRUE  shuttlexpress4.1.button-2-not
+   119  bit   OUT         FALSE  shuttlexpress4.1.button-3
+   119  bit   OUT          TRUE  shuttlexpress4.1.button-3-not
+   119  bit   OUT         FALSE  shuttlexpress4.1.button-4
+   119  bit   OUT          TRUE  shuttlexpress4.1.button-4-not
+   119  s32   OUT             0  shuttlexpress4.1.counts
+   119  float OUT             0  shuttlexpress4.1.spring-wheel-f
+   119  s32   OUT             0  shuttlexpress4.1.spring-wheel-s32
+   119  bit   OUT         FALSE  shuttlexpress4.2.button-0
+   119  bit   OUT          TRUE  shuttlexpress4.2.button-0-not
+   119  bit   OUT         FALSE  shuttlexpress4.2.button-1
+   119  bit   OUT          TRUE  shuttlexpress4.2.button-1-not
+   119  bit   OUT         FALSE  shuttlexpress4.2.button-2
+   119  bit   OUT          TRUE  shuttlexpress4.2.button-2-not
+   119  bit   OUT         FALSE  shuttlexpress4.2.button-3
+   119  bit   OUT          TRUE  shuttlexpress4.2.button-3-not
+   119  bit   OUT         FALSE  shuttlexpress4.2.button-4
+   119  bit   OUT          TRUE  shuttlexpress4.2.button-4-not
+   119  s32   OUT             0  shuttlexpress4.2.counts
+   119  float OUT             0  shuttlexpress4.2.spring-wheel-f
+   119  s32   OUT             0  shuttlexpress4.2.spring-wheel-s32
+   119  bit   OUT         FALSE  shuttlexpress4.3.button-0
+   119  bit   OUT          TRUE  shuttlexpress4.3.button-0-not
+   119  bit   OUT         FALSE  shuttlexpress4.3.button-1
+   119  bit   OUT          TRUE  shuttlexpress4.3.button-1-not
+   119  bit   OUT         FALSE  shuttlexpress4.3.button-2
+   119  bit   OUT          TRUE  shuttlexpress4.3.button-2-not
+   119  bit   OUT         FALSE  shuttlexpress4.3.button-3
+   119  bit   OUT          TRUE  shuttlexpress4.3.button-3-not
+   119  bit   OUT         FALSE  shuttlexpress4.3.button-4
+   119  bit   OUT          TRUE  shuttlexpress4.3.button-4-not
+   119  s32   OUT             0  shuttlexpress4.3.counts
+   119  float OUT             0  shuttlexpress4.3.spring-wheel-f
+   119  s32   OUT             0  shuttlexpress4.3.spring-wheel-s32
+    91  s32   I/O             0  tormach.a-motor-command <=> a-motor-command
+    91  s32   IN              0  tormach.a-motor-state <== a-motor-state
+    91  s32   I/O             0  tormach.a-status-code <=> a-status-code
+    91  float I/O             0  tormach.a_friction_model_force
+    91  bit   IN          FALSE  tormach.acc-input-port2
+    91  float OUT             0  tormach.at-speed-enc-mismatch-to ==> at-speed-enc-mismatch-to
+    91  bit   IN          FALSE  tormach.atc-device-status <== atc-device
+    91  bit   IN          FALSE  tormach.atc-draw-status <== atc-draw-bar
+    91  bit   IN          FALSE  tormach.atc-hal-busy <== atc-status
+    91  float OUT             0  tormach.atc-hal-data
+    91  float OUT             0  tormach.atc-hal-request
+    91  float IN              0  tormach.atc-hal-return <== atc-retcode
+    91  bit   IN          FALSE  tormach.atc-lock-status <== atc-spindle-brake
+    91  bit   IN          FALSE  tormach.atc-ngc-running <== atc-ngc-running
+    91  bit   IN          FALSE  tormach.atc-pressure-status <== atc-pressure
+    91  bit   IN          FALSE  tormach.atc-sol1-status <== atc-sol1
+    91  u32   IN     0x0000000A  tormach.atc-tools-in-tray <== atc-tray-tools
+    91  bit   IN          FALSE  tormach.atc-tray-out-sensor <== atc-tray-out-sensor
+    91  float IN              0  tormach.atc-tray-position <== atc-slot
+    91  bit   IN          FALSE  tormach.atc-tray-status <== atc-tray-in
+    91  bit   IN          FALSE  tormach.atc-trayref-status <== atc-trayref
+    91  bit   IN          FALSE  tormach.atc-vfd-status <== atc-vfd
+    91  bit   IN          FALSE  tormach.axis-0-homing <== x-is-homing
+    91  bit   IN          FALSE  tormach.axis-0-kb-jog-active <== cesig1
+    91  bit   IN          FALSE  tormach.axis-1-homing <== ignore1
+    91  bit   IN          FALSE  tormach.axis-1-kb-jog-active <== cesig2
+    91  bit   IN          FALSE  tormach.axis-2-homing <== ignore2
+    91  bit   IN          FALSE  tormach.axis-2-kb-jog-active <== cesig3
+    91  bit   IN          FALSE  tormach.axis-3-homing <== ax3-is-homing
+    91  bit   IN          FALSE  tormach.axis-3-kb-jog-active <== cesig4
+    91  bit   OUT         FALSE  tormach.axis.0.previously_homed ==> motor.00.homed-previously
+    91  bit   OUT         FALSE  tormach.axis.1.previously_homed ==> motor.01.homed-previously
+    91  bit   OUT         FALSE  tormach.axis.2.previously_homed ==> motor.02.homed-previously
+    91  bit   OUT         FALSE  tormach.axis.3.previously_homed ==> motor.03.homed-previously
+    91  float I/O             0  tormach.axis_comp_rot_a <=> axis_comp_rot_a
+    91  float I/O             0  tormach.axis_comp_rot_b <=> axis_comp_rot_b
+    91  float I/O             0  tormach.axis_comp_rot_c <=> axis_comp_rot_c
+    91  float I/O             0  tormach.axis_comp_skew_xy <=> axis_comp_skew_xy
+    91  float I/O             0  tormach.axis_comp_skew_yz <=> axis_comp_skew_yz
+    91  float I/O             0  tormach.axis_comp_skew_zx <=> axis_comp_skew_zx
+    91  bit   I/O         FALSE  tormach.axis_comp_update <=> axis_comp_update
+    91  bit   OUT          TRUE  tormach.blackbox-capture-ignore-feedhold ==> blackbox-capture-ignore-feedhold
+    91  bit   OUT         FALSE  tormach.blackbox-capture-ignore-stop ==> blackbox-capture-ignore-stop
+    91  bit   IN          FALSE  tormach.blackbox-capturing <== blackbox-capturing
+    91  bit   I/O         FALSE  tormach.blackbox-force-capture <=> blackbox-force-capture
+    91  bit   IN          FALSE  tormach.ce-machine <== machine-mode
+    91  float IN              0  tormach.chip-conveyor-active-time <== chip-conveyor-active-time
+    91  bit   IN          FALSE  tormach.chip-conveyor-enable <== chip-conveyor-enable
+    91  float IN              0  tormach.chip-conveyor-inactive-time <== chip-conveyor-inactive-time
+    91  float OUT             0  tormach.console-axis-0-jog-max-vel
+    91  float OUT             0  tormach.console-axis-1-jog-max-vel
+    91  float OUT             0  tormach.console-axis-2-jog-max-vel
+    91  float OUT             0  tormach.console-axis-3-jog-max-vel
+    91  s32   IN              0  tormach.console-axis-select-counts <== console-axis-counts
+    91  bit   IN          FALSE  tormach.console-button-hold2run <== hold2run
+    91  bit   I/O         FALSE  tormach.console-cycle-start <=> console-cycle-start
+    91  bit   IN          FALSE  tormach.console-defeatured-mode <== defeaturedmodesig
+    91  bit   IN          FALSE  tormach.console-device-connected <== console-device-connected
+    91  float IN              0  tormach.console-feed-override <== console-feed-override
+    91  bit   I/O         FALSE  tormach.console-feedhold <=> console-feedhold
+    91  s32   IN              0  tormach.console-jog-counts <== console-mpgcounts
+    91  bit   OUT         FALSE  tormach.console-jog-enabled
+    91  bit   OUT         FALSE  tormach.console-jog-is-metric
+    91  bit   OUT          TRUE  tormach.console-led-blue ==> console-led-blue
+    91  bit   OUT         FALSE  tormach.console-led-green ==> console-led-green
+    91  bit   OUT         FALSE  tormach.console-led-ready ==> console-led-ready
+    91  bit   OUT         FALSE  tormach.console-led-red ==> console-led-red
+    91  bit   IN          FALSE  tormach.console-mode-select <== modeswitchsig
+    91  float IN              0  tormach.console-rapid-override <== console-rapid-override
+    91  float IN              0  tormach.console-rpm-override <== console-rpm-override
+    91  s32   IN              0  tormach.console-step-select-counts <== console-step-counts
+    91  bit   OUT         FALSE  tormach.coolant ==> coolant-flood
+    91  bit   IN          FALSE  tormach.coolant-iocontrol <== coolant-flood-io
+    91  u32   IN     0x00000001  tormach.cycle-time-hours <== cycle-hours
+    91  u32   IN     0x00000012  tormach.cycle-time-minutes <== cycle-minutes
+    91  u32   IN     0x00000038  tormach.cycle-time-seconds <== cycle-seconds
+    91  bit   IN          FALSE  tormach.dbbutton-input <== dbbutton-input
+    91  bit   IN          FALSE  tormach.dbbutton-permission <== dbbutton-permission
+    91  bit   IN          FALSE  tormach.dbbutton-solenoid <== dbbutton-solenoid
+    91  u32   OUT    0x00000001  tormach.debug-level ==> debug-level
+    91  bit   OUT         FALSE  tormach.enc-door-latch-release-enable ==> enc-door-latch-release-enable
+    91  bit   OUT         FALSE  tormach.enc-door-lock-drive ==> enc-door-lock-drive
+    91  bit   IN          FALSE  tormach.enc-door-locked-status <== enc-door-locked-status
+    91  float OUT             0  tormach.enc-door-open-max-rpm ==> enc-door-open-max-rpm
+    91  bit   IN          FALSE  tormach.enc-door-open-status <== enc-door-open-status
+    91  bit   OUT         FALSE  tormach.enc-door-switch-enabled ==> enc-door-switch-enabled
+    91  bit   I/O         FALSE  tormach.hg-button-changed <=> thg-button-changed
+    91  bit   IN          FALSE  tormach.hg-button-pressed <== thg-button-pressed
+    91  bit   OUT         FALSE  tormach.hg-debug ==> thg-debug
+    91  bit   OUT         FALSE  tormach.hg-enable ==> thg-enable
+    91  bit   IN           TRUE  tormach.hg-has-zero-button <== thg-has-zero-button
+    91  float IN              0  tormach.hg-height <== thg-net-height
+    91  bit   I/O         FALSE  tormach.hg-mm-mode <=> thg-mm-mode
+    91  bit   IN          FALSE  tormach.hg-present <== thg-present
+    91  bit   OUT         FALSE  tormach.hg-set-zero-offset ==> thg-set-zero-offset
+    91  float IN              0  tormach.hg-zero-offset <== thg-zero-offset
+    91  bit   OUT          TRUE  tormach.home-switch-enable ==> limit-switch-enable
+    91  bit   IN           TRUE  tormach.home-switch-x <== home-limit-x-raw
+    91  bit   IN           TRUE  tormach.home-switch-y <== home-limit-y-raw
+    91  bit   IN           TRUE  tormach.home-switch-z <== home-limit-z-raw
+    91  bit   IN          FALSE  tormach.jog-axis-a-enabled <== sxp.aen-button
+    91  bit   IN          FALSE  tormach.jog-axis-x-enabled <== sxp.xen-button
+    91  bit   IN           TRUE  tormach.jog-axis-y-enabled <== sxp.yen-button
+    91  bit   IN          FALSE  tormach.jog-axis-z-enabled <== sxp.zen-button
+    91  s32   IN            176  tormach.jog-counts <== sxp.counts-smoothed
+    91  u32   OUT    0x00000001  tormach.jog-gui-step-index ==> sxp.gui_step_index
+    91  bit   OUT         FALSE  tormach.jog-is-metric ==> sxp.is_metric
+    91  s32   IN              1  tormach.jog-ring-selected-axis <== sxp.selected-axis
+    91  float OUT             0  tormach.jog-ring-speed-1
+    91  float OUT             0  tormach.jog-ring-speed-2
+    91  float OUT             0  tormach.jog-ring-speed-3
+    91  float OUT             0  tormach.jog-ring-speed-4
+    91  float OUT             0  tormach.jog-ring-speed-5
+    91  float OUT             0  tormach.jog-ring-speed-6
+    91  float OUT             0  tormach.jog-ring-speed-7
+    91  float IN              0  tormach.jog-ring-speed-signed <== sxp.jog-ring-speed-signed
+    91  bit   IN          FALSE  tormach.jog-step-button <== sxp.step-button
+    91  u32   IN     0x00000000  tormach.m200-comp-version <== spindle-m200-comp-version
+    91  float IN              0  tormach.m200-vfd-rpm-feedback <== vfd-running
+    91  bit   IN          FALSE  tormach.machine-ok <== machine-ok
+    91  bit   I/O         FALSE  tormach.mesa-watchdog-has-bit <=> watchdog-signal
+    91  bit   OUT         FALSE  tormach.mist ==> coolant-mist
+    91  bit   IN          FALSE  tormach.mist-iocontrol <== coolant-mist-io
+    91  s32   IN              0  tormach.motion-completed-program-line
+    91  s32   IN              0  tormach.motion-motion-type <== motion-motion-type
+    91  s32   IN              0  tormach.motion-next-program-line
+    91  s32   IN              0  tormach.motion-program-line
+    91  float IN              0  tormach.motor.00.feedback-torque <== motor.00.feedback-torque
+    91  float IN              0  tormach.motor.00.joint-pos-fb <== axis.x.feedback-position
+    91  float IN              0  tormach.motor.00.motor-pos-fb <== motor.00.feedback-position
+    91  s32   IN              0  tormach.motor.00.rapid-override <== motor.00.rapid-override
+    91  float IN              0  tormach.motor.01.feedback-torque <== motor.01.feedback-torque
+    91  float IN              0  tormach.motor.01.joint-pos-fb <== axis.y.feedback-position
+    91  float IN              0  tormach.motor.01.motor-pos-fb <== motor.01.feedback-position
+    91  s32   IN              0  tormach.motor.01.rapid-override <== motor.01.rapid-override
+    91  float IN              0  tormach.motor.02.feedback-torque <== motor.02.feedback-torque
+    91  float IN              0  tormach.motor.02.joint-pos-fb <== axis.z.feedback-position
+    91  float IN              0  tormach.motor.02.motor-pos-fb <== motor.02.feedback-position
+    91  s32   IN              0  tormach.motor.02.rapid-override <== motor.02.rapid-override
+    91  float IN              0  tormach.motor.03.feedback-torque <== motor.03.feedback-torque
+    91  float IN              0  tormach.motor.03.joint-pos-fb <== axis.a.feedback-position
+    91  float IN              0  tormach.motor.03.motor-pos-fb <== motor.03.feedback-position
+    91  s32   IN              0  tormach.motor.03.rapid-override <== motor.03.rapid-override
+    91  float IN              0  tormach.motor.atc.feedback-torque <== motor.atc.feedback-torque
+    91  bit   IN          FALSE  tormach.motor.atc.online <== motor.atc.online
+    91  float IN              0  tormach.motor.spindle.joint-pos-fb <== spindle.00.spindle-revs
+    91  s32   IN              0  tormach.motor.spindle.motor-pos-fb <== spindle.00.feedback-position
+    91  float IN              0  tormach.orient-drift <== orient-status
+    91  bit   OUT         FALSE  tormach.pc-ok-LED ==> pc-ok-LED
+    91  bit   OUT         FALSE  tormach.pp-estop-fault ==> pp-estop-fault
+    91  bit   OUT         FALSE  tormach.probe-active-high ==> probe-active-high
+    91  bit   IN          FALSE  tormach.probe-battery <== probe-battery
+    91  bit   OUT          TRUE  tormach.probe-enable ==> probe-enable
+    91  bit   IN           TRUE  tormach.probe-input <== probe-input
+    91  bit   IN           TRUE  tormach.probe-ready <== probe-ready
+    91  bit   IN          FALSE  tormach.probe-receiver-ready <== probe-receiver-ready
+    91  bit   OUT         FALSE  tormach.probe-sim
+    91  float OUT             1  tormach.prompt-reply ==> prompt-channel
+    91  float OUT             0  tormach.ramp-up-enc-mismatch-to ==> ramp-up-enc-mismatch-to
+    91  bit   IN          FALSE  tormach.robot-active <== robot-relay
+    91  bit   OUT         FALSE  tormach.router-air-blast ==> gui-router-air-blast
+    91  bit   IN          FALSE  tormach.router-air-blast-fb <== gui-router-air-blast-fb
+    91  u32   IN     0x00000000  tormach.router-atc-pcb-cnt <== pcb-24R-cnt
+    91  bit   IN          FALSE  tormach.router-atc-pcb-lockout <== pcb-24R-lockout
+    91  bit   IN          FALSE  tormach.router-atc-pcb-present <== pcb-24R-atc-exists
+    91  bit   OUT         FALSE  tormach.router-atc-safe ==> pcb-24R-atc-safe
+    91  bit   IN          FALSE  tormach.router-atc-safe-done <== 24R-pp-to-atc-enable
+    91  bit   OUT         FALSE  tormach.router-clamp
+    91  bit   IN          FALSE  tormach.router-dust-collector <== gui-router-dust-collector
+    91  bit   OUT         FALSE  tormach.router-dust-shoe ==> gui-router-dust-shoe
+    91  bit   IN          FALSE  tormach.router-dust-shoe-fb <== gui-router-dust-shoe-fb
+    91  float IN              0  tormach.router-new-tool <== router-new-tool
+    91  float IN              0  tormach.router-old-tool <== router-old-tool
+    91  bit   IN          FALSE  tormach.router-pdb-sensor <== router-pdb-sensor
+    91  float IN              0  tormach.router-run-timer <== router-timer
+    91  float IN              0  tormach.router-tool-complete <== router-tool-complete
+    91  bit   OUT         FALSE  tormach.router-tool-release ==> gui-router-tool-release
+    91  u32   IN     0x00000000  tormach.router-tool-release-cnt <== router-tool-release-cnt
+    91  bit   IN          FALSE  tormach.router-tool-sensor <== router-tool-sensor
+    91  bit   IN          FALSE  tormach.router-user-prompt <== router-user-prompt
+    91  u32   IN     0x00000000  tormach.router-usr-pdb-cnt <== router-usr-pdb-cnt
+    91  u32   IN     0x00000001  tormach.run-time-hours <== run-hours
+    91  u32   IN     0x0000000B  tormach.run-time-minutes <== run-minutes
+    91  u32   IN     0x00000037  tormach.run-time-seconds <== run-seconds
+    91  bit   OUT          TRUE  tormach.setter-active-high ==> setter-active-high
+    91  bit   IN          FALSE  tormach.setter-battery <== setter-battery
+    91  bit   IN          FALSE  tormach.setter-input <== setter-input
+    91  bit   IN          FALSE  tormach.setter-ready <== setter-ready
+    91  bit   OUT         FALSE  tormach.shutdown ==> shutdown
+    91  bit   IN          FALSE  tormach.shutdown-complete <== shutdown_fb
+    91  bit   OUT         FALSE  tormach.smart-cool-down ==> sc_down
+    91  bit   OUT         FALSE  tormach.smart-cool-man-auto ==> sc_override
+    91  bit   OUT         FALSE  tormach.smart-cool-up ==> sc_up
+    91  bit   IN          FALSE  tormach.spindle-at-speed <== spindle-at-speed
+    91  s32   I/O             0  tormach.spindle-bt30-offset <=> spindle-bt30-offset
+    91  bit   IN          FALSE  tormach.spindle-chiller-alarm-fault <== spindle-chiller-alarm-fault
+    91  bit   OUT         FALSE  tormach.spindle-disable ==> spindle-disable
+    91  bit   IN          FALSE  tormach.spindle-door-open <== spindle.00.door_open
+    91  u32   IN     0x00000000  tormach.spindle-encoder-temp <== spindle-encoder-temp
+    91  u32   OUT    0x00000000  tormach.spindle-encoder-test ==> spindle-encoder-test
+    91  u32   IN     0x00000000  tormach.spindle-fault <== spindle-fault
+    91  bit   I/O         FALSE  tormach.spindle-has-been-referenced <=> spindle-has-been-referenced
+    91  float OUT         24000  tormach.spindle-hispeed-max ==> spindle-hispeed-max
+    91  float OUT          1000  tormach.spindle-hispeed-min ==> spindle-hispeed-min
+    91  float IN           5140  tormach.spindle-max-speed <== spindle-max-speed
+    91  float IN            250  tormach.spindle-min-speed <== spindle-min-speed
+    91  bit   IN          FALSE  tormach.spindle-on <== spindle-on
+    91  s32   IN              0  tormach.spindle-orient-fault <== spindle-orient-fault
+    91  bit   OUT          TRUE  tormach.spindle-range ==> spindle-range
+    91  bit   IN          FALSE  tormach.spindle-range-alarm <== spindle-range-alarm
+    91  bit   I/O         FALSE  tormach.spindle-reference-to-sensor <=> spindle-reference-to-sensor
+    91  bit   I/O         FALSE  tormach.spindle-set-bt30 <=> spindle-set-bt30
+    91  float IN              0  tormach.spindle-speed-out <== spindle-speed-fb-rpm
+    91  s32   OUT             0  tormach.spindle-type ==> spindle-type
+    91  float IN              0  tormach.spindle.00.feedback-torque <== spindle.00.feedback-torque
+    91  s32   IN              0  tormach.spindle.00.rapid-override
+    91  u32   OUT    0x00000001  tormach.state_cmd ==> state_cmd
+    91  u32   IN     0x00000000  tormach.state_fb <== state_fb
+    91  bit   OUT         FALSE  tormach.state_set ==> state_set
+    91  bit   IN          FALSE  tormach.torstep1-cfg-0 <== torstep1-cfg-0
+    91  bit   IN          FALSE  tormach.torstep1-cfg-1 <== torstep1-cfg-1
+    91  bit   IN          FALSE  tormach.torstep1-cfg-2 <== torstep1-cfg-2
+    91  bit   OUT         FALSE  tormach.tsc-coolant ==> coolant-tsc
+    91  bit   IN          FALSE  tormach.tsc-coolant-diffpressure <== coolant-tsc-diffpressure
+    91  bit   IN          FALSE  tormach.tsc-coolant-iocontrol <== coolant-tsc-io
+    91  bit   IN          FALSE  tormach.tsc-coolant-overpressure <== coolant-tsc-overpressure
+    91  bit   IN          FALSE  tormach.usbio-board-0-present <== board0present
+    91  bit   IN          FALSE  tormach.usbio-board-1-present <== board1present
+    91  bit   IN          FALSE  tormach.usbio-board-2-present <== board2present
+    91  bit   IN          FALSE  tormach.usbio-board-3-present <== board3present
+    91  bit   OUT         FALSE  tormach.usbio-enabled ==> usbio-enabled
+    91  bit   IN          FALSE  tormach.usbio-input-0 <== dig-in-0
+    91  bit   IN          FALSE  tormach.usbio-input-1 <== dig-in-1
+    91  bit   IN          FALSE  tormach.usbio-input-10 <== dig-in-10
+    91  bit   IN          FALSE  tormach.usbio-input-11 <== dig-in-11
+    91  bit   IN          FALSE  tormach.usbio-input-12 <== dig-in-12
+    91  bit   IN          FALSE  tormach.usbio-input-13 <== dig-in-13
+    91  bit   IN          FALSE  tormach.usbio-input-14 <== dig-in-14
+    91  bit   IN          FALSE  tormach.usbio-input-15 <== dig-in-15
+    91  bit   IN          FALSE  tormach.usbio-input-2 <== dig-in-2
+    91  bit   IN          FALSE  tormach.usbio-input-3 <== dig-in-3
+    91  bit   IN          FALSE  tormach.usbio-input-4 <== dig-in-4
+    91  bit   IN          FALSE  tormach.usbio-input-5 <== dig-in-5
+    91  bit   IN          FALSE  tormach.usbio-input-6 <== dig-in-6
+    91  bit   IN          FALSE  tormach.usbio-input-7 <== dig-in-7
+    91  bit   IN          FALSE  tormach.usbio-input-8 <== dig-in-8
+    91  bit   IN          FALSE  tormach.usbio-input-9 <== dig-in-9
+    91  bit   IN          FALSE  tormach.usbio-output-0 <== dig-out-0
+    91  bit   IN          FALSE  tormach.usbio-output-1 <== dig-out-1
+    91  bit   IN          FALSE  tormach.usbio-output-10 <== dig-out-10
+    91  bit   IN          FALSE  tormach.usbio-output-11 <== dig-out-11
+    91  bit   IN          FALSE  tormach.usbio-output-12 <== dig-out-12
+    91  bit   IN          FALSE  tormach.usbio-output-13 <== dig-out-13
+    91  bit   IN          FALSE  tormach.usbio-output-14 <== dig-out-14
+    91  bit   IN          FALSE  tormach.usbio-output-15 <== dig-out-15
+    91  bit   IN          FALSE  tormach.usbio-output-2 <== dig-out-2
+    91  bit   IN          FALSE  tormach.usbio-output-3 <== dig-out-3
+    91  bit   IN          FALSE  tormach.usbio-output-4 <== dig-out-4
+    91  bit   IN          FALSE  tormach.usbio-output-5 <== dig-out-5
+    91  bit   IN          FALSE  tormach.usbio-output-6 <== dig-out-6
+    91  bit   IN          FALSE  tormach.usbio-output-7 <== dig-out-7
+    91  bit   IN          FALSE  tormach.usbio-output-8 <== dig-out-8
+    91  bit   IN          FALSE  tormach.usbio-output-9 <== dig-out-9
+    91  s32   IN              0  tormach.usbio-status <== iob-status
+    91  bit   IN          FALSE  tormach.vfd-fault
+    91  bit   IN          FALSE  tormach.waiting-for-encoder-z-index <== spindle-index-enable
+    91  bit   OUT         FALSE  tormach.washdown ==> washdown
+    91  bit   IN          FALSE  tormach.washdown-iocontrol <== washdown-io
+    91  s32   I/O             2  tormach.x-motor-command <=> x-motor-command
+    91  s32   IN              0  tormach.x-motor-state <== x-motor-state
+    91  s32   I/O             0  tormach.x-status-code <=> x-status-code
+    91  float I/O             0  tormach.x_friction_model_force <=> x_friction_model_force
+    91  bit   IN          FALSE  tormach.xstechpro-pressure-status <== xstechpro-pressure
+    91  s32   I/O             2  tormach.y-motor-command <=> y-motor-command
+    91  s32   IN              0  tormach.y-motor-state <== y-motor-state
+    91  s32   I/O             0  tormach.y-status-code <=> y-status-code
+    91  float I/O             0  tormach.y_friction_model_force <=> y_friction_model_force
+    91  s32   I/O             0  tormach.z-motor-command <=> z-motor-command
+    91  s32   IN              5  tormach.z-motor-state <== z-motor-state
+    91  s32   I/O             0  tormach.z-status-code <=> z-status-code
+    91  float I/O             0  tormach.z_friction_model_force <=> z_friction_model_force
+== jog signals
+                         <== axis.0.kb-jog-active
+                         ==> tormach.axis-0-kb-jog-active
+                         <== axis.1.kb-jog-active
+                         ==> tormach.axis-1-kb-jog-active
+                         <== axis.2.kb-jog-active
+                         ==> tormach.axis-2-kb-jog-active
+                         <== axis.3.kb-jog-active
+                         ==> tormach.axis-3-kb-jog-active
+                         <== tormach-console.0.jog-wheel-counts-adjusted
+                         ==> tormach.console-jog-counts
+bit           FALSE  sxp.a-button
+                         ==> milljogtranslator.ax-butt-3
+                         <== shuttlexpress4.0.button-3
+bit           FALSE  sxp.aen-button
+                         <== milljogtranslator.ax-out-3-sel
+                         ==> tormach.jog-axis-a-enabled
+s32             176  sxp.counts-smoothed
+                         <== shuttlexpress4.0.counts
+                         ==> tormach.jog-counts
+u32      0x00000001  sxp.gui_step_index
+                         ==> milljogtranslator.gui-step-index
+                         <== tormach.jog-gui-step-index
+bit           FALSE  sxp.is_metric
+                         ==> milljogtranslator.is-metric
+                         <== tormach.jog-is-metric
+float             0  sxp.jog-ring-speed-signed
+                         <== milljogtranslator.ax-jog-speed-signed
+                         ==> tormach.jog-ring-speed-signed
+s32               1  sxp.selected-axis
+                         <== milljogtranslator.ax-selected-axis
+                         ==> tormach.jog-ring-selected-axis
+u32      0x00000001  sxp.shuttle_step_index
+                         <== milljogtranslator.shuttle-step-index
+s32               0  sxp.spring-wheel
+                         ==> milljogtranslator.ring-raw
+                         <== shuttlexpress4.0.spring-wheel-s32
+bit           FALSE  sxp.step-button
+                         ==> milljogtranslator.cycle-stepsizes
+                         <== shuttlexpress4.0.button-4
+                         ==> tormach.jog-step-button
+bit           FALSE  sxp.x-button
+                         ==> milljogtranslator.ax-butt-0
+                         <== shuttlexpress4.0.button-0
+bit           FALSE  sxp.xen-button
+                         <== milljogtranslator.ax-out-0-sel
+                         ==> tormach.jog-axis-x-enabled
+bit           FALSE  sxp.y-button
+                         ==> milljogtranslator.ax-butt-1
+                         <== shuttlexpress4.0.button-1
+bit            TRUE  sxp.yen-button
+                         <== milljogtranslator.ax-out-1-sel
+                         ==> tormach.jog-axis-y-enabled
+bit           FALSE  sxp.z-button
+                         ==> milljogtranslator.ax-butt-2
+                         <== shuttlexpress4.0.button-2
+bit           FALSE  sxp.zen-button
+                         <== milljogtranslator.ax-out-2-sel
+                         ==> tormach.jog-axis-z-enabled
+== motion state pins
+    26  bit   OUT         FALSE  axis.0.kb-jog-active ==> cesig1
+    26  bit   OUT         FALSE  axis.0.wheel-jog-active
+    26  bit   OUT         FALSE  axis.1.kb-jog-active ==> cesig2
+    26  bit   OUT         FALSE  axis.1.wheel-jog-active
+    26  bit   OUT         FALSE  axis.2.kb-jog-active ==> cesig3
+    26  bit   OUT         FALSE  axis.2.wheel-jog-active
+    26  bit   OUT         FALSE  axis.3.kb-jog-active ==> cesig4
+    26  bit   OUT         FALSE  axis.3.wheel-jog-active
+    26  bit   OUT         FALSE  motion.coord-mode
+    26  bit   OUT          TRUE  motion.in-position
+    26  bit   OUT         FALSE  motion.motion-enabled
+    26  bit   OUT         FALSE  motion.teleop-mode
+== ini: /home/operator/tmc/configs/tormach_mill/tormach_1100-3_7i92.ini
+15:[MACHINE_CONFIG]
+26:[EMC]
+30:[DISPLAY]
+38:INCREMENTS = .1in .05in .01in .005in .001in .0005in .0001in
+43:[REDIS]
+49:[TASK]
+54:[RS274NGC]
+104:[INTERP_PREAMBLE]
+108:[PYTHON]
+114:[EMCMOT]
+120:[HOSTMOT2]
+132:[HAL]
+133:HALUI = halui
+134:HALFILE = tormach_mill_mesa.hal
+135:POSTGUI_SHUTTLEXPRESS_HALFILE = millshuttlexpress.hal
+136:POSTGUI_VMC_CONSOLE_HALFILE = ../common/operator_console_controls_4axis.hal
+137:POSTGUI_HALFILE = postgui_tormach_mill.hal
+138:POSTGUI_SQUARENESS_COMP_HALFILE = ../common/postgui_axis_comp.hal
+142:[TRAJ]
+144:COORDINATES = X Y Z A
+145:LINEAR_UNITS = inch
+148:MAX_VELOCITY = 3.0
+155:[EMCIO]
+160:[SPINDLE]
+210:[TORMACH_SPINDLE]
+214:[AXIS_0]
+218:MAX_VELOCITY = 1.833
+219:MAX_ACCELERATION = 15.0
+225:MAX_JOG_VELOCITY_UPS = 1.833
+226:MIN_JOG_VELOCITY_UPS = 0.008333
+249:MIN_LIMIT = -0.000001
+250:MAX_LIMIT = 18.000000
+258:[AXIS_1]
+260:MAX_VELOCITY = 1.833
+261:MAX_ACCELERATION = 15.0
+267:MAX_JOG_VELOCITY_UPS = 1.833
+268:MIN_JOG_VELOCITY_UPS = 0.008333
+291:MIN_LIMIT = -9.500
+292:MAX_LIMIT = 0.000001
+301:[AXIS_2]
+305:MAX_VELOCITY = 1.500
+306:MAX_ACCELERATION = 15.0
+312:MAX_JOG_VELOCITY_UPS = 1.5
+313:MIN_JOG_VELOCITY_UPS = 0.008333
+336:MIN_LIMIT = -16.250
+337:MAX_LIMIT = 0.000001
+345:[AXIS_3]
+349:MAX_VELOCITY = 22.0
+350:MAX_ACCELERATION = 69.0
+355:MAX_JOG_VELOCITY_UPS = 22.0
+356:MIN_JOG_VELOCITY_UPS = 0.15
+378:MIN_LIMIT = -99999999.0
+379:MAX_LIMIT = 99999999.0
+430:[A_AXIS_4_INCH]
+431:MAX_VELOCITY = 108.0
+432:MAX_ACCELERATION = 200.0
+435:MAX_JOG_VELOCITY_UPS = 108.0
+436:MIN_JOG_VELOCITY_UPS = 0.15
+439:[A_AXIS_6_8_INCH]
+440:MAX_VELOCITY = 22.0
+441:MAX_ACCELERATION = 69.0
+444:MAX_JOG_VELOCITY_UPS = 22.0
+445:MIN_JOG_VELOCITY_UPS = 0.15
+448:[A_AXIS_XSTECH]
+449:MAX_VELOCITY = 22.0
+450:MAX_ACCELERATION = 69.0
+453:MAX_JOG_VELOCITY_UPS = 22.0
+454:MIN_JOG_VELOCITY_UPS = 0.15
+457:[A_AXIS_440_RT]
+458:MAX_VELOCITY = 600.0
+459:MAX_ACCELERATION = 400.0
+462:MAX_JOG_VELOCITY_UPS = 120.0
+463:MIN_JOG_VELOCITY_UPS = 0.15
+466:[A_AXIS_ETHERCAT_SRV_6_INCH]
+468:MAX_VELOCITY = 270.0
+469:MAX_ACCELERATION = 270.0
+470:MAX_JOG_VELOCITY_UPS = 270.0
+471:MIN_JOG_VELOCITY_UPS = 0.15
+475:[A_AXIS_ETHERCAT_STP_4_INCH]
+477:MAX_VELOCITY = 108.0
+478:MAX_ACCELERATION = 200.0
+479:MAX_JOG_VELOCITY_UPS = 108.0
+480:MIN_JOG_VELOCITY_UPS = 0.15
+== file: /home/operator/tmc/configs/tormach_mill/millshuttlexpress.hal
+
+#
+# This HAL file hooks up a ShuttleXpress USB dongle from Contour Design.
+#
+#  Author J A Prentice, modified by Tormach
+#
+# The ShuttleXpress has five momentary buttons, a jog-wheel with 10
+# counts per revolution and detents, and a 15-position rotary knob with
+# return-to-center springy action.
+#
+
+loadusr -W shuttlexpress4
+
+loadrt milljogtranslator names=milljogtranslator
+addf milljogtranslator servo-thread
+
+# Next value NZ if buttons to latch axes
+setp milljogtranslator.radio-latching 1
+
+#
+# connect shuttlexpress buttons and wheels to milljogtranslator
+#
+net sxp.x-button    shuttlexpress4.0.button-0 => milljogtranslator.ax-butt-0
+net sxp.y-button    shuttlexpress4.0.button-1 => milljogtranslator.ax-butt-1
+net sxp.z-button    shuttlexpress4.0.button-2 => milljogtranslator.ax-butt-2
+net sxp.a-button    shuttlexpress4.0.button-3 => milljogtranslator.ax-butt-3
+net sxp.step-button shuttlexpress4.0.button-4 => milljogtranslator.cycle-stepsizes
+net sxp.spring-wheel shuttlexpress4.0.spring-wheel-s32 => milljogtranslator.ring-raw
+
+# Here is the ring jogging
+net sxp.jog-ring-speed-signed <= milljogtranslator.ax-jog-speed-signed
+net sxp.selected-axis => milljogtranslator.ax-selected-axis
+
+# Here is wheel jogging
+# step in 1/1000 of desired move
+setp milljogtranslator.smallest-step 0.0000001
+setp milljogtranslator.number-of-stepsizes 4
+
+# hook up selected axis signals
+net sxp.xen-button milljogtranslator.ax-out-0-sel
+net sxp.yen-button milljogtranslator.ax-out-1-sel
+net sxp.zen-button milljogtranslator.ax-out-2-sel
+net sxp.aen-button milljogtranslator.ax-out-3-sel
+
+# minimum and maximum ring speeds in machine units per minute
+# these are ring speeds '1' and '7' and intermediate speeds are a geometric progression
+# they are units per second from the main INI file [AXIS_N] sections
+setp milljogtranslator.jt-min-speed.0 [AXIS_0]MIN_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-max-speed.0 [AXIS_0]MAX_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-min-speed.1 [AXIS_1]MIN_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-max-speed.1 [AXIS_1]MAX_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-min-speed.2 [AXIS_2]MIN_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-max-speed.2 [AXIS_2]MAX_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-min-speed.3 [AXIS_3]MIN_JOG_VELOCITY_UPS
+setp milljogtranslator.jt-max-speed.3 [AXIS_3]MAX_JOG_VELOCITY_UPS
+
+# The ShuttleXpress inner jog wheel has 10 clicks per revolution
+#
+net sxp.counts-smoothed => shuttlexpress4.0.counts
+
+net sxp.shuttle_step_index => milljogtranslator.shuttle-step-index
+net sxp.gui_step_index => milljogtranslator.gui-step-index 
+net sxp.is_metric => milljogtranslator.is-metric
+
+== file: /home/operator/tmc/configs/tormach_mill/postgui_tormach_mill.hal
+# Include your customized HAL commands here
+# The commands in this file are run after the GUI starts and has the opportunity to create the needed pins
+
+# drive shutdown command & state
+net shutdown <= tormach.shutdown
+net shutdown_fb => tormach.shutdown-complete
+
+# wire up the UI debug level to components that can use it
+net debug-level tormach.debug-level zbotatc.debug-level
+net debug-level zbotschnozz.debug-level
+
+# connect so encsetupdlg.py can monitor this too, so it knows when an orient is completed 
+net orient-status  tormach.orient-drift
+
+net ramp-up-enc-mismatch-to tormach.ramp-up-enc-mismatch-to
+net at-speed-enc-mismatch-to tormach.at-speed-enc-mismatch-to
+
+# spindle door open
+net spindle.00.door_open => tormach.spindle-door-open
+
+# connect spindle belt position UI to spindle comp
+net spindle-range                tormach.spindle-range
+net spindle-range-alarm          tormach.spindle-range-alarm
+
+# spindle RPM derived by spindle comp
+net spindle-speed-fb-rpm         tormach.spindle-speed-out
+net spindle-speed-fb-rpm         zbotatc.vfd-running
+
+# spindle load feedback
+net spindle.00.feedback-torque   tormach.spindle.00.feedback-torque
+
+# Axes encoder temperature monitoring
+net spindle-encoder-temp tormach.spindle-encoder-temp
+
+# Axes torque monitoring
+net motor.00.feedback-torque   tormach.motor.00.feedback-torque
+net motor.01.feedback-torque   tormach.motor.01.feedback-torque
+net motor.02.feedback-torque   tormach.motor.02.feedback-torque
+net motor.03.feedback-torque   tormach.motor.03.feedback-torque
+net motor.atc.feedback-torque  tormach.motor.atc.feedback-torque
+
+# XYZA position feedback from motion for monitoring home offsets
+net motor.00.feedback-position => tormach.motor.00.motor-pos-fb
+net motor.01.feedback-position => tormach.motor.01.motor-pos-fb
+net motor.02.feedback-position => tormach.motor.02.motor-pos-fb
+net motor.03.feedback-position => tormach.motor.03.motor-pos-fb
+net axis.x.feedback-position   => tormach.motor.00.joint-pos-fb
+net axis.y.feedback-position   => tormach.motor.01.joint-pos-fb
+net axis.z.feedback-position   => tormach.motor.02.joint-pos-fb
+net axis.a.feedback-position   => tormach.motor.03.joint-pos-fb
+
+# spindle feedback
+net spindle.00.feedback-position => tormach.motor.spindle.motor-pos-fb
+net spindle.00.spindle-revs      => tormach.motor.spindle.joint-pos-fb
+
+net motor.atc.online  tormach.motor.atc.online
+
+# Netting pins for all three axes for future proofing, but currently only Z is used
+# If this value is <100 axis rapid is being inhibitted.
+net motor.00.rapid-override    tormach.motor.00.rapid-override
+net motor.01.rapid-override    tormach.motor.01.rapid-override
+net motor.02.rapid-override    tormach.motor.02.rapid-override
+net motor.03.rapid-override    tormach.motor.03.rapid-override
+
+net x-motor-state                tormach.x-motor-state
+net y-motor-state                tormach.y-motor-state
+net z-motor-state                tormach.z-motor-state
+net a-motor-state                tormach.a-motor-state
+
+net x-motor-command              tormach.x-motor-command
+net y-motor-command              tormach.y-motor-command
+net z-motor-command              tormach.z-motor-command
+net a-motor-command              tormach.a-motor-command
+
+# EtherCAT drive manager pins
+net state_cmd <= tormach.state_cmd
+net state_fb => tormach.state_fb
+net state_set <= tormach.state_set
+
+# spindle type
+net spindle-type                 tormach.spindle-type
+
+# these let the UI read the current min/max speeds the comp maintains based on spindle type
+net spindle-min-speed            tormach.spindle-min-speed
+net spindle-max-speed            tormach.spindle-max-speed
+
+# these let the UI write the comp values for hispeed min/max
+net spindle-hispeed-min          tormach.spindle-hispeed-min
+net spindle-hispeed-max          tormach.spindle-hispeed-max
+
+net spindle-disable              tormach.spindle-disable
+net spindle-on                   tormach.spindle-on
+net spindle-at-speed             tormach.spindle-at-speed
+net vfd-running                  tormach.m200-vfd-rpm-feedback
+
+net spindle-set-bt30            tormach.spindle-set-bt30
+net spindle-orient-fault        tormach.spindle-orient-fault
+net spindle-bt30-offset         tormach.spindle-bt30-offset
+net spindle-encoder-test        tormach.spindle-encoder-test
+net spindle-index-enable        tormach.waiting-for-encoder-z-index
+net spindle-fault               tormach.spindle-fault
+net spindle-m200-comp-version   tormach.m200-comp-version
+
+net spindle-reference-to-sensor tormach.spindle-reference-to-sensor
+net spindle-has-been-referenced tormach.spindle-has-been-referenced
+
+net pp-estop-fault              tormach.pp-estop-fault
+net spindle-chiller-alarm-fault tormach.spindle-chiller-alarm-fault
+
+#--------------------------------------------------------------------------------
+# enclosure door switch and lock related pins
+net enc-door-switch-enabled      tormach.enc-door-switch-enabled
+net enc-door-open-max-rpm        tormach.enc-door-open-max-rpm
+
+# for open-status, 1 = door is open, 0 = door is closed
+net enc-door-open-status         tormach.enc-door-open-status
+
+# enclosure door latch release button enable/LED
+# driven by UI
+net enc-door-latch-release-enable   tormach.enc-door-latch-release-enable
+net enc-door-lock-drive          tormach.enc-door-lock-drive
+
+# for locked-status, 1 = door is locked, 0 = door is unlocked
+net enc-door-locked-status       tormach.enc-door-locked-status
+#--------------------------------------------------------------------------------
+
+# coolant
+net coolant-flood                tormach.coolant
+net coolant-flood-io             tormach.coolant-iocontrol
+
+#mist
+net coolant-mist                 tormach.mist
+net coolant-mist-io              tormach.mist-iocontrol
+
+# Washdown
+net washdown                 tormach.washdown
+net washdown-io              tormach.washdown-iocontrol
+
+# TSC
+net coolant-tsc                 tormach.tsc-coolant
+net coolant-tsc-io              tormach.tsc-coolant-iocontrol
+net coolant-tsc-overpressure    tormach.tsc-coolant-overpressure
+net coolant-tsc-diffpressure    tormach.tsc-coolant-diffpressure
+
+# CONVEYOR
+net chip-conveyor-enable        tormach.chip-conveyor-enable
+net chip-conveyor-active-time   tormach.chip-conveyor-active-time
+net chip-conveyor-inactive-time tormach.chip-conveyor-inactive-time
+net chip-conveyor-enable        remap.chip-conveyor-enable
+
+#SMART COOL COMPONENTS and PINS
+net coolant-flood               zbotschnozz.coolant
+net coolant-mist                zbotschnozz.mist
+
+# this connects the GUI to the signals from the milljogtranslator/shuttlexpress
+net sxp.xen-button            => tormach.jog-axis-x-enabled
+net sxp.yen-button            => tormach.jog-axis-y-enabled
+net sxp.zen-button            => tormach.jog-axis-z-enabled
+net sxp.aen-button            => tormach.jog-axis-a-enabled
+net sxp.step-button           => tormach.jog-step-button
+net sxp.jog-ring-speed-signed => tormach.jog-ring-speed-signed
+net sxp.selected-axis         => tormach.jog-ring-selected-axis
+net sxp.counts-smoothed       => tormach.jog-counts
+net sxp.gui_step_index        <= tormach.jog-gui-step-index
+net sxp.is_metric             <= tormach.jog-is-metric
+
+# digital height gauge
+net thg-net-height tormachheightgauge.net-height           => tormach.hg-height
+net thg-zero-offset tormachheightgauge.zero-offset         => tormach.hg-zero-offset
+net thg-button-pressed tormachheightgauge.button-pressed   => tormach.hg-button-pressed
+net thg-button-changed tormachheightgauge.button-changed   => tormach.hg-button-changed
+net thg-mm-mode tormachheightgauge.mm-mode                 => tormach.hg-mm-mode
+net thg-set-zero-offset tormachheightgauge.set-zero-offset => tormach.hg-set-zero-offset
+net thg-present tormachheightgauge.present                 => tormach.hg-present
+net thg-debug tormachheightgauge.debug                     => tormach.hg-debug
+net thg-enable tormachheightgauge.enable                   => tormach.hg-enable
+net thg-has-zero-button tormachheightgauge.has-zero-button => tormach.hg-has-zero-button
+
+# probe input active level control
+net probe-active-high                                         tormach.probe-active-high
+
+# setter input active level control
+net setter-active-high                                        tormach.setter-active-high
+
+# probe function disable/enable. Used for switching between probe and use as "encoder" input for new accessories
+net probe-enable             tormach.probe-enable
+
+# wireless probe LED indicators
+net probe-ready              tormach.probe-ready
+net probe-input              tormach.probe-input
+net probe-battery            tormach.probe-battery
+net setter-input             tormach.setter-input
+net setter-ready             tormach.setter-ready
+net setter-battery           tormach.setter-battery
+
+net probe-receiver-ready  tormach.probe-receiver-ready
+
+# GUI status LEDs
+net machine-ok    tormach.machine-ok
+
+# GUI control of PC LED on ECM1 control board
+net pc-ok-LED     tormach.pc-ok-LED
+
+# limit switch status
+net home-limit-x-raw => tormach.home-switch-x
+net home-limit-y-raw => tormach.home-switch-y
+net home-limit-z-raw => tormach.home-switch-z
+net limit-switch-enable => tormach.home-switch-enable
+
+# home persistance across drive power cycles
+net motor.00.homed-previously tormach.axis.0.previously_homed
+net motor.01.homed-previously tormach.axis.1.previously_homed
+net motor.02.homed-previously tormach.axis.2.previously_homed
+net motor.03.homed-previously tormach.axis.3.previously_homed
+
+net x-status-code           tormach.x-status-code
+net y-status-code           tormach.y-status-code
+net z-status-code           tormach.z-status-code
+net a-status-code           tormach.a-status-code
+
+# Mesa card watchdog
+net watchdog-signal tormach.mesa-watchdog-has-bit
+
+loadrt time
+addf time.0 servo-thread
+net prog-running prog-not-idle.in <= halui.program.is-idle
+net cycle-timer time.0.start <= prog-not-idle.out
+net cycle-seconds tormach.cycle-time-seconds <= time.0.seconds
+net cycle-minutes tormach.cycle-time-minutes <= time.0.minutes
+net cycle-hours tormach.cycle-time-hours <= time.0.hours
+
+loadrt stopwatch
+addf stopwatch.0 servo-thread
+net cycle-timer stopwatch.0.start
+net run-pause stopwatch.0.pause <= halui.program.is-paused
+net run-seconds tormach.run-time-seconds <= stopwatch.0.seconds
+net run-minutes tormach.run-time-minutes <= stopwatch.0.minutes
+net run-hours tormach.run-time-hours <= stopwatch.0.hours
+
+# Z-Bot ATC Pins to motion contoller DIO , AIO stuff
+
+#command and control
+
+# network motion control spindle lock to ATC hal component, and to digital in P55
+net orient-lock zbotatc.0.din.0.request_lock
+net orient-lock motion.digital-in-55
+
+# allow ATC HAL component to see orient-status
+net orient-status  zbotatc.0.ain.8.read_orient_stat
+
+net atc-ngc-request-number motion.analog-out-03 => zbotatc.0.ngc_request_number
+net atc-ngc-request-command motion.analog-out-04 => zbotatc.0.ngc_request_command
+net atc-ngc-request-data motion.analog-out-05 =>  zbotatc.0.ngc_request_data
+net atc-ngc-request-number-ack motion.analog-in-04 => zbotatc.0.ngc_request_number_ack
+
+net atc-gui-request-number motion.analog-out-06 => zbotatc.0.gui_request_number
+net atc-gui-request-command motion.analog-out-07 => zbotatc.0.gui_request_command
+net atc-gui-request-data motion.analog-out-08 => zbotatc.0.gui_request_data
+net atc-gui-request-number-ack motion.analog-in-07 => zbotatc.0.gui_request_number_ack
+
+net atc-status  motion.digital-in-16 <=  zbotatc.0.dout.5.exec_status
+net atc-status  tormach.atc-hal-busy <=  zbotatc.0.dout.5.exec_status
+
+net atc-retcode motion.analog-in-05     <=  zbotatc.0.aout.0.request_rc
+net atc-retcode tormach.atc-hal-return  <=  zbotatc.0.aout.0.request_rc
+
+#hardware status variables
+net atc-tray-in  motion.digital-in-17    <= zbotatc.0.dout.0.tray_status
+net atc-tray-in  tormach.atc-tray-status <= zbotatc.0.dout.0.tray_status
+
+net atc-tray-out-sensor  tormach.atc-tray-out-sensor
+
+net atc-vfd      motion.digital-in-18   <= zbotatc.0.dout.1.vfd_status
+net atc-vfd      tormach.atc-vfd-status <= zbotatc.0.dout.1.vfd_status
+
+net atc-draw-bar motion.digital-in-19    <= zbotatc.0.dout.2.draw_status
+net atc-draw-bar tormach.atc-draw-status <= zbotatc.0.dout.2.draw_status
+
+net atc-trayref tormach.atc-trayref-status <= zbotatc.0.dout.9.trayref_status
+net atc-trayref motion.digital-in-22       <= zbotatc.0.dout.9.trayref_status
+
+net atc-sol1    tormach.atc-sol1-status    <= zbotatc.0.dout.10.sol1_status
+
+net atc-spindle-brake tormach.atc-lock-status <= zbotatc.0.dout.6.lock_status
+
+net atc-pressure motion.digital-in-20        <= zbotatc.0.dout.3.pressure_status
+net atc-pressure tormach.atc-pressure-status <= zbotatc.0.dout.3.pressure_status
+net xstechpro-pressure  tormach.xstechpro-pressure-status
+
+
+# Robot control led for xsTechPro
+net robot-relay tormach.robot-active
+
+net atc-slot     motion.analog-in-06       <= zbotatc.0.aout.1.tray_position
+net atc-slot     tormach.atc-tray-position <= zbotatc.0.aout.1.tray_position
+net atc-tray-tools tormach.atc-tools-in-tray <= zbotatc.atc-tools-in-tray
+net atc-tray-tools remap.atc-tools-in-tray
+net orient-status           remap.atc-orient-status
+net orient-status           motion.analog-in-08
+net spindle-orient-execute  zbotatc.0.din.1.orient_execute
+
+net dbbutton-solenoid tormach.dbbutton-solenoid
+net dbbutton-permission tormach.dbbutton-permission
+net dbbutton-input tormach.dbbutton-input
+
+# tool change remap code uses this to make sure z is referenced
+net z-homed axis.2.homed remap.axis.2.homed
+
+#hardware status variables
+net atc-device   motion.digital-in-21      <= zbotatc.0.dout.4.device_status
+net atc-device   tormach.atc-device-status <= zbotatc.0.dout.4.device_status
+
+net atc-ngc-running motion.digital-out-16  => tormach.atc-ngc-running  
+
+#24R ATC
+net router-pdb-sensor tormach.router-pdb-sensor
+net router-tool-sensor tormach.router-tool-sensor 
+net gui-router-tool-release tormach.router-tool-release
+net gui-router-dust-shoe tormach.router-dust-shoe
+net gui-router-dust-shoe-fb tormach.router-dust-shoe-fb
+net gui-router-air-blast tormach.router-air-blast 
+net gui-router-air-blast-fb tormach.router-air-blast-fb
+net pcb-24R-atc-safe tormach.router-atc-safe
+net 24R-pp-to-atc-enable tormach.router-atc-safe-done
+
+# Dust collector
+net gui-router-dust-collector 	  tormach.router-dust-collector
+
+net pcb-24R-atc-exists tormach.router-atc-pcb-present
+net pcb-24R-cnt tormach.router-atc-pcb-cnt
+net router-timer tormach.router-run-timer
+net router-tool-release-cnt tormach.router-tool-release-cnt
+net pcb-24R-lockout tormach.router-atc-pcb-lockout
+net router-usr-pdb-cnt tormach.router-usr-pdb-cnt
+net router-user-prompt tormach.router-user-prompt
+net router-old-tool tormach.router-old-tool
+net router-new-tool tormach.router-new-tool
+net router-tool-complete tormach.router-tool-complete
+
+
+# USBIO
+net usbio-enabled tormach.usbio-enabled => usbio.enabled
+net dig-out-0 tormach.usbio-output-0
+net dig-out-1 tormach.usbio-output-1
+net dig-out-2 tormach.usbio-output-2
+net dig-out-3 tormach.usbio-output-3
+net dig-out-4 tormach.usbio-output-4
+net dig-out-5 tormach.usbio-output-5
+net dig-out-6 tormach.usbio-output-6
+net dig-out-7 tormach.usbio-output-7
+net dig-out-8 tormach.usbio-output-8
+net dig-out-9 tormach.usbio-output-9
+net dig-out-10 tormach.usbio-output-10
+net dig-out-11 tormach.usbio-output-11
+net dig-out-12 tormach.usbio-output-12
+net dig-out-13 tormach.usbio-output-13
+net dig-out-14 tormach.usbio-output-14
+net dig-out-15 tormach.usbio-output-15
+
+net dig-in-0 tormach.usbio-input-0
+net dig-in-1 tormach.usbio-input-1
+net dig-in-2 tormach.usbio-input-2
+net dig-in-3 tormach.usbio-input-3
+net dig-in-4 tormach.usbio-input-4
+net dig-in-5 tormach.usbio-input-5
+net dig-in-6 tormach.usbio-input-6
+net dig-in-7 tormach.usbio-input-7
+net dig-in-8 tormach.usbio-input-8
+net dig-in-9 tormach.usbio-input-9
+net dig-in-10 tormach.usbio-input-10
+net dig-in-11 tormach.usbio-input-11
+net dig-in-12 tormach.usbio-input-12
+net dig-in-13 tormach.usbio-input-13
+net dig-in-14 tormach.usbio-input-14
+net dig-in-15 tormach.usbio-input-15
+
+# for detecting current motion type: rapid, feed, probe, etc
+net motion-motion-type     tormach.motion-motion-type       motion.motion-type
+
+# prompting data
+net prompt-channel tormach.prompt-reply => motion.analog-in-10
+
+# IOB notification for errors
+net iob-status usbio.IOB-OK => tormach.usbio-status
+
+net board0present usbio.board-0-present => tormach.usbio-board-0-present
+net board1present usbio.board-1-present => tormach.usbio-board-1-present
+net board2present usbio.board-2-present => tormach.usbio-board-2-present
+net board3present usbio.board-3-present => tormach.usbio-board-3-present
+
+
+#Smart Cool keyboard override pins
+net sc_override  tormach.smart-cool-man-auto    => zbotschnozz.man-auto
+net sc_up        tormach.smart-cool-up          => zbotschnozz.cool-up
+net sc_down      tormach.smart-cool-down        => zbotschnozz.cool-down
+
+#
+# Pins to allow for monitoring of axis homing
+# Detection of axis homing to enforce CE mode 1 restrictions
+#
+net x-is-homing     tormach.axis-0-homing
+net ignore1         axis.1.homing tormach.axis-1-homing
+net ignore2         axis.2.homing tormach.axis-2-homing
+net ax3-is-homing   tormach.axis-3-homing
+
+# Detection of axis jogging to enforce CE mode 1 restrictions
+net cesig1 axis.0.kb-jog-active tormach.axis-0-kb-jog-active
+net cesig2 axis.1.kb-jog-active tormach.axis-1-kb-jog-active
+net cesig3 axis.2.kb-jog-active tormach.axis-2-kb-jog-active
+net cesig4 axis.3.kb-jog-active tormach.axis-3-kb-jog-active
+
+# Connect CE machine signal
+net machine-mode tormach.ce-machine
+
+net torstep1-cfg-0 tormach.torstep1-cfg-0
+net torstep1-cfg-1 tormach.torstep1-cfg-1
+net torstep1-cfg-2 tormach.torstep1-cfg-2
+
+
+== jog lines in other hal files
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:99:# this connects the GUI to the signals from the milljogtranslator/shuttlexpress
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:100:net sxp.xen-button            => tormach.jog-axis-x-enabled
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:101:net sxp.yen-button            => tormach.jog-axis-y-enabled
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:102:net sxp.zen-button            => tormach.jog-axis-z-enabled
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:103:net sxp.aen-button            => tormach.jog-axis-a-enabled
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:104:net sxp.step-button           => tormach.jog-step-button
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:105:net sxp.jog-ring-speed-signed => tormach.jog-ring-speed-signed
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:106:net sxp.selected-axis         => tormach.jog-ring-selected-axis
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:107:net sxp.counts-smoothed       => tormach.jog-counts
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:108:net sxp.gui_step_index        <= tormach.jog-gui-step-index
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:109:net sxp.is_metric             <= tormach.jog-is-metric
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:194:net prog-running prog-not-idle.in <= halui.program.is-idle
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:203:net run-pause stopwatch.0.pause <= halui.program.is-paused
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:367:# Detection of axis jogging to enforce CE mode 1 restrictions
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:368:net cesig1 axis.0.kb-jog-active tormach.axis-0-kb-jog-active
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:369:net cesig2 axis.1.kb-jog-active tormach.axis-1-kb-jog-active
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:370:net cesig3 axis.2.kb-jog-active tormach.axis-2-kb-jog-active
+/home/operator/tmc/configs/tormach_mill/postgui_tormach_mill_sim.hal:371:net cesig4 axis.3.kb-jog-active tormach.axis-3-kb-jog-active
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_csp.hal:360:net spindle.00.door_open => latch.spindle.0.fault-in halui.spindle.stop
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_csp.hal:920:setp halui.rapid-override.direct-value 1
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_csp.hal:921:setp halui.rapid-override.scale 0.01
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_csp.hal:922:net motor.02.rapid-override halui.rapid-override.counts
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_sim.hal:664:setp halui.rapid-override.direct-value 1
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_sim.hal:665:setp halui.rapid-override.scale 0.01
+/home/operator/tmc/configs/tormach_mill/tormach_mill_ethercat_sim.hal:666:net motor.02.rapid-override halui.rapid-override.counts
+/home/operator/tmc/configs/tormach_mill/tormach_mill_mesa_440.hal:340:#the above probe-hi-lo is now expanded and filtered by one more gate to disable probe input during jogging of 4th axis
+/home/operator/tmc/configs/tormach_mill/../common/operator_console_controls_3axis.hal:10:# jog wheel setup
+/home/operator/tmc/configs/tormach_mill/../common/operator_console_controls_3axis.hal:11:net console-mpgcounts tormach-console.0.jog-wheel-counts-adjusted tormach.console-jog-counts
+/home/operator/tmc/configs/tormach_mill/../common/operator_console_controls_4axis.hal:10:# jog wheel setup
+/home/operator/tmc/configs/tormach_mill/../common/operator_console_controls_4axis.hal:11:net console-mpgcounts tormach-console.0.jog-wheel-counts-adjusted tormach.console-jog-counts
+== shuttle driver
+/home/operator/tmc/bin/shuttlexpress
+shuttlexpress
+shuttlexpress4
+== usb
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 019: ID 1209:0002 InterBiometrics 
+Bus 001 Device 017: ID 05e3:0610 Genesys Logic, Inc. 4-port hub
+Bus 001 Device 016: ID 0bda:8179 Realtek Semiconductor Corp. RTL8188EUS 802.11n Wireless Network Adapter
+Bus 001 Device 015: ID 05e3:0610 Genesys Logic, Inc. 4-port hub
+Bus 001 Device 009: ID c0f4:0df5  
+Bus 001 Device 008: ID 046d:c05a Logitech, Inc. M90/M100 Optical Mouse
+Bus 001 Device 006: ID 3434:0430  
+Bus 001 Device 004: ID 0b33:0020 Contour Design, Inc. ShuttleXpress
+Bus 001 Device 002: ID 1a40:0101 Terminus Technology Inc. Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+== hidraw
+hidraw0: HID_ID=0003:00000B33:00000020 HID_NAME=Contour Design ShuttleXpress
+crw-rw-rw- 1 root root 247, 0 Oct 25 14:06 /dev/hidraw0
+hidraw1: HID_ID=0003:00003434:00000430 HID_NAME=Keychron Keychron C3 Pro
+crw------- 1 root root 247, 1 Oct 25 14:06 /dev/hidraw1
+hidraw2: HID_ID=0003:00003434:00000430 HID_NAME=Keychron Keychron C3 Pro
+crw------- 1 root root 247, 2 Oct 25 14:06 /dev/hidraw2
+hidraw3: HID_ID=0003:00003434:00000430 HID_NAME=Keychron Keychron C3 Pro
+crw------- 1 root root 247, 3 Oct 25 14:06 /dev/hidraw3
+hidraw4: HID_ID=0003:0000046D:0000C05A HID_NAME=Logitech USB Optical Mouse
+crw------- 1 root root 247, 4 Oct 25 14:06 /dev/hidraw4
+hidraw5: HID_ID=0003:0000C0F4:00000DF5 HID_NAME=Usb KeyBoard Usb KeyBoard
+crw------- 1 root root 247, 5 Oct 25 14:06 /dev/hidraw5
+hidraw6: HID_ID=0003:0000C0F4:00000DF5 HID_NAME=Usb KeyBoard Usb KeyBoard
+crw------- 1 root root 247, 6 Oct 25 14:06 /dev/hidraw6
+== pendulum install
+total 116
+-rw-r--r-- 1 operator operator   133 Oct 25 21:34 attach.log
+-r-xr-xr-x 1 operator operator   978 Oct 25 21:35 attach.sh
+-r--r--r-- 1 operator operator  1712 Oct 25 21:35 pendulum.hal
+-r-xr-xr-x 1 operator operator  7225 Oct 25 21:35 pendulum.py
+-r-xr-xr-x 1 operator operator  3150 Oct 25 21:35 ppenv.sh
+-r-xr-xr-x 1 operator operator  3691 Oct 25 21:35 probe.sh
+-rw-r--r-- 1 operator operator 70709 Oct 25 21:35 probe.txt
+-rw-r--r-- 1 operator operator    39 Oct 25 21:35 python.txt
+-r--r--r-- 1 operator operator  1193 Oct 25 21:35 readme.txt
+-r-xr-xr-x 1 operator operator   804 Oct 25 21:35 uninst.sh
+-r-xr-xr-x 1 operator operator   351 Oct 25 21:35 watch.sh
+/home/operator/v2.14.3/venv/bin/python
+pendulum: loading component
+pendulum: ready
+pendulum: opened /dev/hidraw7
+pendulum: lost /dev/hidraw7 ([Errno 5] Input/output error)
+== udev
+# /etc/udev/rules.d/99-pendulum.rules - installed by pendulum install.sh
+# Let the PathPilot user read the pendulum jog report.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", MODE="0666"
+# Keep ModemManager away from the pendulum serial console.
+ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0002", ENV{ID_MM_DEVICE_IGNORE}="1"

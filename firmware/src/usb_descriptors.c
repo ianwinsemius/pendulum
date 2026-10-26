@@ -29,6 +29,9 @@ uint8_t const desc_hid_report[] = {
   0x75, 0x08,             //   Report Size (8)
   0x95, sizeof(pendulum_report_t),  // Report Count (20)
   0x81, 0x02,             //   Input (Data, Var, Abs)
+  0x09, 0x03,             //   Usage (3)
+  0x95, sizeof(pendulum_out_report_t),  // Report Count (8)
+  0x91, 0x02,             //   Output (Data, Var, Abs)  host -> Pendulum
   0xC0                    // End Collection
 };
 
@@ -119,7 +122,11 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
   (void)instance; (void)report_id; (void)type; (void)buffer; (void)reqlen;
   return 0;
 }
+// Output report from pendulum.py (arrives as SET_REPORT on endpoint 0).
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t type,
                            uint8_t const *buffer, uint16_t bufsize) {
-  (void)instance; (void)report_id; (void)type; (void)buffer; (void)bufsize;
+  (void)instance; (void)report_id;
+  if (type != HID_REPORT_TYPE_OUTPUT && type != HID_REPORT_TYPE_INVALID) return;
+  if (bufsize < 2 || buffer[0] != PENDULUM_PROTOCOL_VERSION) return;
+  if (buffer[1] <= 4) pad_request_led(buffer[1]);
 }

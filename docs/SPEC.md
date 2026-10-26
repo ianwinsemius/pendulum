@@ -1,6 +1,6 @@
 # Pendulum — gamepad jog adapter for PathPilot
 
-**Status:** v0.1.1. Verified on hardware (Pico W): firmware boots, serial console works, config mode serves the PENDULUM installer drive. Not yet tested: gamepad input, PathPilot side. Machine target: Tormach PCNC 1100, X/Y/Z.
+**Status:** v0.4.0. Verified on hardware (Pico W + 8BitDo SN30 Pro wired): firmware boots, serial console, config-mode installer drive, gamepad input decoded. Not yet tested: jog output tuning, PathPilot side. Machine target: Tormach PCNC 1100, X/Y/Z.
 
 ## 1. Goal
 
@@ -63,14 +63,16 @@ Supported pendants:
 
 A power cycle always returns to run mode. 0x1209 is pid.codes; 0001/0002 are its test PIDs — fine for a personal build.
 
-### Pendant combos (hold Back + …)
+### Pendant combos (hold Select + …)
+
+Select is the 8BitDo label; XInput calls it Back. L/R are the top shoulder buttons (LB/RB).
 
 | Combo | Hold | Action |
 |---|---|---|
 | Start | 3 s | Toggle run / config mode (reboots Pendulum) |
 | Start + LB + RB | 3 s | UF2 bootloader (firmware update) |
 
-While Back is held, all motion is suppressed. After any combo Pendulum requires neutral again before it will move anything.
+While Select is held, all motion is suppressed. After any combo Pendulum requires neutral again before it will move anything.
 
 ## 4. Jog behaviour
 
@@ -84,11 +86,12 @@ While Back is held, all motion is suppressed. After any combo Pendulum requires 
 | D-pad ←/→ | X single step −/+ |
 | D-pad ↓/↑ | Y single step −/+ |
 | LB / RB | Z single step −/+ |
-| A, B, X, Y, Start, L3, R3, Guide | passed through as button pins |
+| Y | presses PathPilot's jog-step button (cycles .0001/.001/.01/.1); D-pad steps use PathPilot's selected increment; player LEDs 1–4 show it |
+| A, B, X, Start, L3, R3, Guide | passed through as button pins (A/B/X actions planned) |
 
 ### Arbitration
 
-Axes belong to groups. In **planar** mode (default) X and Y share a group, so diagonals are allowed; Z is alone. In **single** mode every axis is its own group.
+**free** (default): every stick axis moves independently, so X, Y and Z can jog at the same time. **planar**: X and Y share a group (diagonals), Z alone. **single**: one axis at a time. In planar/single, axes belong to groups:
 
 - The first input past the claim threshold makes its group the *owner*.
 - Only the owner group moves. Other inputs are ignored.
@@ -99,13 +102,21 @@ Axes belong to groups. In **planar** mode (default) X and Y share a group, so di
 
 Each stick: deadzone (`release`) → normalize → expo blend `(1−e)·t + e·t³` → cap (`max`). Claim/release hysteresis stops chatter at the edge of the deadzone.
 
+### Debounce
+
+Starting motion is debounced; stopping never is. A stick must stay deflected (same direction, ending past `claim`) for `start_ms` (default 80 ms) before it drives anything, so finger slips and grazes do nothing. A D-pad/bumper press must be held `step_ms` (default 40 ms) before it steps. Releasing a stick or button stops immediately. The plug-in lockout and ownership use raw deflection, so a stick that is still debouncing counts as deflected.
+
+### Spring-back guard
+
+Released sticks overshoot past centre for a few ms (measured on the 8BitDo: −31744 → +17152 → −4096 → 0). Motion opposite to the last driven direction on a channel is ignored until that stick has rested at centre for `reverse_ms` (default 100 ms; 0 disables). Deliberate reversals just need a brief pause at centre.
+
 ### Safety rules
 
 | Condition | Result |
 |---|---|
 | Pendant not connected / unplugged | All zero |
 | Pendant plugged in with a stick deflected or button held | Zero until everything is seen neutral (lockout) |
-| Back held | Zero (combo in progress) |
+| Select (Back) held | Zero (combo in progress) |
 | Deadman configured but not held | Zero |
 | Pendulum unplugged, report stale >100 ms, wrong protocol | PC component zeroes outputs |
 
@@ -122,13 +133,19 @@ Deadman (`set deadman rt` etc.) is off by default. Recommended if the pendant ha
 | 2 | flags | bit0 connected, bit1 armed, bit2 deadman ok, bit3 motion, bit4 suppressed |
 | 3 | owner | owning group, 0xFF none |
 | 4–11 | vel[4] | int16 X, Y, Z, A. ±32767 = ±100 % of max jog speed |
-| 12–13 | buttons | XInput bit layout, Back always masked |
+| 12–13 | buttons | XInput bit layout, Select/Back always masked |
 | 14–17 | counts[4] | uint8 X, Y, Z, A single-step counters, wrap at 256 |
 | 18–19 | reserved | 0 |
 
 Any change to this layout bumps the version byte, and the component must be updated with it.
 
+### Host → Pendulum report (v1)
+
+8-byte HID output report written by `pendulum.py` to `/dev/hidraw` (report number 0 first): byte 0 version (1), byte 1 LED 0–4 (0 = off, n = player LED n), byte 2 rumble (reserved), bytes 3–7 reserved.
+
 ## 6. Configuration
+
+Console diagnostics: `pad` (state + read counters), `log on|raw|off` (pendant changes / every packet), `jog on|off` (the report sent to PathPilot, on change). Hotkeys, no Enter: Ctrl-G jog monitor, Ctrl-L pendant log, Ctrl-P pendant status, Ctrl-C all logging off.
 
 Settings live in Pendulum's flash, edited over the serial console (VS Code Serial Monitor, `screen /dev/ttyACM0`, PuTTY…). `show`, `set <key> <value>`, `save`.
 
@@ -138,12 +155,15 @@ Settings live in Pendulum's flash, edited over the serial console (VS Code Seria
 | `release` | 8 | % below which a stick is neutral |
 | `expo` | 40 | 0 linear … 100 cubic |
 | `max` | 100 | % cap on output |
-| `mode` | planar | `single` or `planar` |
+| `mode` | free | `free`, `planar` or `single` |
 | `deadman` | none | `none`, `lt`, `rt`, `lb`, `rb` |
-| `map.lx` … `map.ry` | x, y, none, z | target axis; prefix `-` to invert |
+| `map.lx` … `map.ry` | -x, -y, none, z | target axis; prefix `-` to invert. Default: sticks follow the table (stick right = table right = X−, stick up = table away = Y−, right stick up = spindle up = Z+). D-pad/bumper steps follow the same inversion. |
 | `dpad` | 1 | D-pad/bumper single steps on/off |
 | `repeat_delay` / `repeat_hz` | 400 / 8 | step auto-repeat |
 | `combo_ms` | 3000 | combo hold time |
+| `reverse_ms` | 100 | centre dwell before a stick may drive the opposite way |
+| `start_ms` | 80 | stick must stay deflected this long before it moves anything |
+| `step_ms` | 40 | D-pad/bumper press must be held this long to step |
 | `hid.lx` … `hid.ry` | off | byte offsets for generic HID pads |
 
 Planned: editable `config.txt` on the drive instead of the console.
@@ -179,16 +199,38 @@ Everything installs to `~/pendulum`. No PathPilot file is modified.
 
 ### Jogging method
 
-Velocity is integrated into counts and fed to motion's MPG inputs (`axis.<L>.jog-counts`, position mode). This is how hardware MPGs jog, needs no halui, and inherits LinuxCNC's soft limits and acceleration. Speed at full stick = `max-speed`; stopping lag ≤ one 10 ms update.
+Verified against probe.txt (PathPilot v2.14.3, LinuxCNC 2.8.0~pre1) and the
+LinuxCNC 2.8 motion source:
 
-**Open:** whether PathPilot already drives `axis.<L>.jog-counts` (e.g. from the shuttle) and the exact pin names on this LinuxCNC version. Until `probe.txt` confirms, the `net` lines in `pendulum.hal` are commented out, so a fresh install loads the component but **cannot move the machine**.
+- PathPilot jogs from its Python GUI via `tormach.*` pins (ShuttleXpress via
+  `milljogtranslator`, operator console via `tormach.console-*`). Motion's
+  hand-wheel inputs `axis.0-2.jog-counts` are unconnected; Pendulum drives
+  them. The ShuttleXpress keeps working.
+- `pendulum.py` integrates stick velocity into counts (`jog-scale` 0.0001 in)
+  and adds D-pad steps (`step-size`). `axis.N.jog-vel-mode = 1`: motion drops
+  any command beyond its stopping distance, so releasing the stick stops promptly.
+- Motion only wheel-jogs in free (manual) mode with the machine on, not while
+  homing or keyboard-jogging, not at zero feed override, and never past soft
+  or hard limits. It saves new counts **before** checking `jog-enable`, so
+  counter jumps while disabled are ignored.
+- `attach.sh` forces `axis.N.jog-enable` off, loads the component and the
+  counter nets, waits, then nets `pendulum.connected` to the enables.
+- Fail-safe by construction: if the component dies, counts stop changing and
+  motion stops. (halui analog jog was rejected: a dead component would leave a
+  continuous jog running.)
+- Open: LinuxCNC ignores wheel jogs in teleop mode; PathPilot may use teleop
+  after referencing. First test checks referenced and unreferenced. Plan B is
+  feeding PathPilot's own `tormach.jog-*` inputs.
+- Open: motion moves each wheel step at full axis velocity; at very low stick
+  speeds that may feel stepped. `axis.N.jog-max-vel` (Tormach-specific, default 0)
+  is set to `MAX_JOG_VELOCITY_UPS`; its exact effect is to be observed.
 
 ## 8. Update / recovery flow
 
 | Situation | Steps |
 |---|---|
-| PathPilot updated | Hold Back+Start 3 s → PENDULUM drive appears → `bash /media/$USER/PENDULUM/install.sh` → replug Pendulum |
-| New firmware | Hold Back+Start+LB+RB 3 s (or BOOTSEL) → drag `pendulum.uf2` onto RPI-RP2 |
+| PathPilot updated | Hold Select+Start 3 s → PENDULUM drive appears → `bash /media/$USER/PENDULUM/install.sh` → replug Pendulum |
+| New firmware | Hold Select+Start+L+R 3 s (or BOOTSEL) → drag `pendulum.uf2` onto RPI-RP2 |
 | Remove | `~/pendulum/uninst.sh` |
 
 ## 9. Bring-up plan
@@ -203,7 +245,7 @@ Velocity is integrated into counts and fed to motion's MPG inputs (`axis.<L>.jog
 
 ## 10. Open questions
 
-1. 8BitDo SN30 Pro wired: XInput or HID on this host? (step 2 above)
+1. ~~8BitDo SN30 Pro wired: XInput or HID?~~ Resolved: XInput, `045e:028e`, standard 4-interface Xbox 360 layout. It sends no input unless the host reads the language and manufacturer/product/serial strings (as Windows/Linux do); TinyUSB 0.18 (in Pico SDK 2.1.x) skips these; v0.2.0 builds against TinyUSB 0.21.0, which reads them during enumeration, and also re-reads them Windows-style after mount. Do not re-send SET_CONFIGURATION: that silences the pad. Streams a report every 4 ms once running.
 2. PathPilot's LinuxCNC version and jog pin names (probe).
 3. Does PathPilot run XDG autostart entries? If not, `watch.sh` needs another start hook (probe shows the session type).
 4. Can `pendulum.step-size` follow PathPilot's selected increment (`tormach.jog-gui-step-index`)?

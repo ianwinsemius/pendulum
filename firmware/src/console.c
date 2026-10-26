@@ -38,13 +38,19 @@ static void help(void) {
       "  save                 store settings in flash\r\n"
       "  defaults             reset settings (then 'save')\r\n"
       "  pad                  show the connected pendant\r\n"
-      "  log on|off           stream raw pendant reports\r\n"
+      "  log on|raw|off       show pendant changes / every raw packet\r\n"
+      "  jog on|off           show what Pendulum sends to PathPilot\r\n"
       "  config               reboot into config mode (installer drive)\r\n"
       "  run                  reboot into run mode\r\n"
       "  bootsel              reboot into the UF2 bootloader\r\n"
-      "Pendant combos (hold Back + ...):\r\n"
+      "Hotkeys (no Enter needed):\r\n"
+      "  Ctrl-G               jog monitor on/off\r\n"
+      "  Ctrl-L               pendant log on/off\r\n"
+      "  Ctrl-P               pendant status\r\n"
+      "  Ctrl-C               all logging off\r\n"
+      "Pendant combos (hold Select + ...):\r\n"
       "  Start, 3 s           toggle run/config mode\r\n"
-      "  Start+LB+RB, 3 s     UF2 bootloader\r\n");
+      "  Start+L+R, 3 s       UF2 bootloader\r\n");
 }
 
 static void show_pad(void) {
@@ -62,8 +68,10 @@ static void show_pad(void) {
   out(b);
   uint32_t nr, ne, nf; bool armed; uint8_t err;
   pad_get_diag(&nr, &ne, &nf, &armed, &err);
-  snprintf(b, sizeof b, "     reading=%s reports=%lu errors=%lu (last %u) start_fail=%lu\r\n",
-           armed ? "yes" : "no", (unsigned long)nr, (unsigned long)ne, err, (unsigned long)nf);
+  snprintf(b, sizeof b, "     led=%u (set by the controller)\r\n", pad_current_led());
+  out(b);
+  snprintf(b, sizeof b, "     reading=%s raw=%lu reports=%lu errors=%lu (last %u) start_fail=%lu\r\n",
+           armed ? "yes" : "no", (unsigned long)pad_raw_count(), (unsigned long)nr, (unsigned long)ne, err, (unsigned long)nf);
   out(b);
 }
 
@@ -92,9 +100,13 @@ static void run_command(char *cmd) {
     out("defaults loaded; type 'save' to keep them\r\n");
   } else if (!strcasecmp(argv[0], "pad")) show_pad();
   else if (!strcasecmp(argv[0], "log")) {
-    bool on = argc > 1 && !strcasecmp(argv[1], "on");
-    pad_set_log(on);
-    out(on ? "logging on\r\n" : "logging off\r\n");
+    const char *a = argc > 1 ? argv[1] : "";
+    if (!strcasecmp(a, "on")) { pad_set_log(1); out("logging pendant changes\r\n"); }
+    else if (!strcasecmp(a, "raw")) { pad_set_log(2); out("logging every raw packet (fast!)\r\n"); }
+    else { pad_set_log(0); out("logging off\r\n"); }
+  } else if (!strcasecmp(argv[0], "jog")) {
+    g_jog_log = argc > 1 && !strcasecmp(argv[1], "on");
+    out(g_jog_log ? "showing jog output changes\r\n" : "jog output off\r\n");
   } else if (!strcasecmp(argv[0], "config")) {
     out("rebooting into CONFIG mode (installer drive); this session will close\r\n");
     request_reboot(USB_MODE_CONFIG);
@@ -112,16 +124,40 @@ static void run_command(char *cmd) {
 }
 
 void console_task(void) {
-  // Drain the log ring.
+  // Drain the log ring, but only to an open terminal: messages from before
+  // you connected (e.g. the plug-in dump) wait in the ring instead of being lost.
   char buf[128];
   size_t n;
-  while ((n = logbuf_drain(buf, sizeof buf - 1)) > 0) {
+  while (tud_cdc_connected() && (n = logbuf_drain(buf, sizeof buf - 1)) > 0) {
     buf[n] = 0;
     out(buf);
   }
   // Read input.
   while (tud_cdc_available()) {
     char c = (char)tud_cdc_read_char();
+
+    // Hotkeys: work any time, no Enter needed.
+    if (c == 0x07 || c == 0x0C || c == 0x10 || c == 0x03) {
+      out("\r\n");
+      if (c == 0x07) {                 // Ctrl-G: jog monitor on/off
+        g_jog_log = !g_jog_log;
+        out(g_jog_log ? "[jog monitor on]\r\n" : "[jog monitor off]\r\n");
+      } else if (c == 0x0C) {          // Ctrl-L: pendant log on/off
+        static bool on;
+        on = !on;
+        pad_set_log(on ? 1 : 0);
+        out(on ? "[pendant log on]\r\n" : "[pendant log off]\r\n");
+      } else if (c == 0x10) {          // Ctrl-P: pendant status
+        show_pad();
+      } else {                         // Ctrl-C: everything quiet
+        g_jog_log = false;
+        pad_set_log(0);
+        out("[all logging off]\r\n");
+      }
+      line_len = 0;
+      out("> ");
+      continue;
+    }
     if (c == '\r' || c == '\n') {
       out("\r\n");
       line[line_len] = 0;
@@ -142,5 +178,5 @@ void console_task(void) {
 void console_banner(void) {
   out(g_usb_mode == USB_MODE_CONFIG ? "\r\nPendulum " PENDULUM_FW_VERSION " - CONFIG mode\r\n"
                                     : "\r\nPendulum " PENDULUM_FW_VERSION " - RUN mode\r\n");
-  out("Type help for commands.\r\n> ");
+  out("Type help for commands. Ctrl-G jog monitor, Ctrl-L pendant log, Ctrl-C quiet.\r\n> ");
 }

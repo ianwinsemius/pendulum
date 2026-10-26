@@ -9,7 +9,7 @@ enum { CH_LX = 0, CH_LY, CH_RX, CH_RY, CH_COUNT };
 // Machine axes. AXIS_NONE disables a channel.
 enum { AXIS_X = 0, AXIS_Y, AXIS_Z, AXIS_A, AXIS_COUNT, AXIS_NONE = 0xFF };
 // Arbitration modes.
-enum { MODE_SINGLE = 0, MODE_PLANAR = 1 };
+enum { MODE_SINGLE = 0, MODE_PLANAR = 1, MODE_FREE = 2 };
 // Deadman sources.
 enum { DM_NONE = 0, DM_LT, DM_RT, DM_LB, DM_RB };
 
@@ -21,7 +21,7 @@ typedef struct {
   uint8_t  release_pct;     // deflection below which a stick counts as neutral
   uint8_t  expo_pct;        // 0 = linear, 100 = full cubic
   uint8_t  max_pct;         // cap on output speed
-  uint8_t  mode;            // MODE_SINGLE or MODE_PLANAR
+  uint8_t  mode;            // MODE_SINGLE, MODE_PLANAR or MODE_FREE
   uint8_t  deadman;         // DM_*
   uint8_t  map[CH_COUNT];   // channel -> AXIS_*
   uint8_t  invert;          // bit per channel
@@ -29,6 +29,11 @@ typedef struct {
   uint16_t repeat_delay_ms; // hold time before a step auto-repeats
   uint16_t repeat_hz;       // auto-repeat rate
   uint16_t combo_ms;        // hold time for mode combos
+  uint16_t reverse_ms;      // stick must rest at centre this long before it may
+                            // drive the opposite way (kills spring-back overshoot)
+  uint16_t start_ms;        // stick must stay deflected this long before it moves
+                            // anything (ignores finger slips / grazes)
+  uint16_t step_ms;         // D-pad / bumper must be held this long to step
 
   // Generic HID pads: byte offsets of 8-bit stick axes (0xFF = unused).
   // Find them with "log on" in the console.

@@ -19,7 +19,7 @@ say() { echo "pendulum: $*"; }
 # 1. files
 say "installing to $DEST"
 mkdir -p "$DEST"
-for f in pendulum.py pendulum.hal attach.sh watch.sh probe.sh uninst.sh readme.txt; do
+for f in pendulum.py pendulum.hal ppenv.sh ppwire.sh attach.sh watch.sh probe.sh uninst.sh readme.txt; do
   if [ -f "$SRC/$f" ]; then
     if [ "$f" = pendulum.hal ] && [ -f "$DEST/pendulum.hal" ] && ! cmp -s "$SRC/$f" "$DEST/$f"; then
       cp "$DEST/pendulum.hal" "$DEST/pendulum.hal.bak"   # keep local tuning
@@ -30,16 +30,31 @@ for f in pendulum.py pendulum.hal attach.sh watch.sh probe.sh uninst.sh readme.t
 done
 chmod +x "$DEST"/*.sh "$DEST/pendulum.py"
 
-# Pick the Python that can import LinuxCNC's hal module.
+# Pick the Python that can import LinuxCNC's hal module, using PathPilot's
+# environment (LinuxCNC runs in place from ~/tmc, so a plain shell can't).
+# shellcheck disable=SC1091
+. "$DEST/ppenv.sh"
+say "PathPilot environment: $PENDULUM_ENV ($PENDULUM_ENV_WHY)"
 PY=""
-for p in python2 python2.7 python python3; do
+for p in python python2 python2.7 python3; do  # "python" = PathPilot's own (venv) first
   if command -v "$p" >/dev/null && "$p" -c "import hal" >/dev/null 2>&1; then PY="$(command -v "$p")"; break; fi
 done
 if [ -n "$PY" ]; then
   echo "$PY" >"$DEST/python.txt"
   say "using $PY"
 else
-  say "WARNING: no Python here can import 'hal'. Is PathPilot installed? (probe.txt will show)"
+  say "WARNING: no Python here can import 'hal' (environment: $PENDULUM_ENV: $PENDULUM_ENV_WHY)."
+  say "         Send ~/pendulum/probe.txt; it shows the details."
+fi
+
+# If an older pendulum is loaded in the running PathPilot, take it out so the
+# watcher reloads it with the new files (jog enables forced off first, the
+# ShuttleXpress step button handed back to PathPilot).
+if [ "$PENDULUM_ENV" != none ] && halcmd show comp 2>/dev/null | grep -qw pendulum; then
+  # shellcheck disable=SC1091
+  . "$DEST/ppwire.sh"
+  pendulum_unwire
+  halcmd unload pendulum && say "unloaded the old component; it reloads with the new wiring within a few seconds"
 fi
 
 # 2. udev rule

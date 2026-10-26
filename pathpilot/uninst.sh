@@ -3,9 +3,15 @@
 set -u
 DEST="$HOME/pendulum"
 say() { echo "pendulum: $*"; }
+# shellcheck disable=SC1091
+[ -f "$DEST/ppenv.sh" ] && . "$DEST/ppenv.sh"
 
 pkill -f "$DEST/watch.sh" 2>/dev/null && say "stopped watcher"
 if halcmd show comp 2>/dev/null | grep -qw pendulum; then
+  # Disable hand-wheel jogging, hand the step button back, then unload.
+  # shellcheck disable=SC1091
+  . "$DEST/ppwire.sh"
+  pendulum_unwire
   halcmd unload pendulum && say "unloaded component"
 fi
 rm -f "$HOME/.config/autostart/pendulum-watch.desktop" && say "removed login item"

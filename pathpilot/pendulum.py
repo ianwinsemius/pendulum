@@ -28,6 +28,12 @@ VID, PID = 0x1209, 0x0001
 PROTOCOL = 1
 REPORT = struct.Struct("<BBBB4hH4B2x")
 STALE_S = 0.100
+# PathPilot mill inch increments by sxp.gui_step_index (checked on the PCNC
+# 1100, 2026-10-25: .0001=0 .001=1 .01=2 .1=3).
+INCH_STEPS = [0.0001, 0.001, 0.01, 0.1]
+STEP_PULSE_S = 0.25     # how long a Y press holds PathPilot's step button
+STEP_LOCKOUT_S = 0.35   # ignore further Y presses for this long
+LED_RESEND_S = 2.0
 RESCAN_S = 1.0
 AXES = "xyza"
 BUTTONS = [  # XInput bit layout, as sent by Pendulum
@@ -50,7 +56,17 @@ c.newpin("jog-scale", hal.HAL_FLOAT, hal.HAL_IN)        # e.g. 0.0001 in/count
 c.newpin("max-speed", hal.HAL_FLOAT, hal.HAL_IN)        # units/s at full stick
 # Single-step distance for D-pad presses (units). Wire to PathPilot's step
 # size if available, otherwise set it in pendulum.hal.
-c.newpin("step-size", hal.HAL_FLOAT, hal.HAL_IN)
+c.newpin("step-size", hal.HAL_FLOAT, hal.HAL_IN)       # used when step-follow is off
+
+# Follow PathPilot's jog increment (sxp.gui_step_index / sxp.is_metric).
+c.newpin("step-follow", hal.HAL_BIT, hal.HAL_IN)       # setp 1 in pendulum.hal
+c.newpin("gui-step-index", hal.HAL_U32, hal.HAL_IN)
+c.newpin("is-metric", hal.HAL_BIT, hal.HAL_IN)
+c.newpin("step-active", hal.HAL_FLOAT, hal.HAL_OUT)    # step in use now (0 = steps off)
+# Y on the pendant presses PathPilot's jog-step button. The ShuttleXpress
+# step button is relayed through here too (attach.sh rewires it).
+c.newpin("shuttle-step-in", hal.HAL_BIT, hal.HAL_IN)
+c.newpin("step-button-out", hal.HAL_BIT, hal.HAL_OUT)
 
 for a in AXES:
     c.newpin(a + "-vel", hal.HAL_FLOAT, hal.HAL_OUT)       # -1..+1
@@ -85,6 +101,11 @@ class State(object):
         self.jog_out = [0] * 4
         self.steps = [0] * 4
         self.last_raw_counts = None
+        self.y_was = False
+        self.pulse_until = 0.0
+        self.lockout_until = 0.0
+        self.led_sent = None
+        self.led_time = 0.0
 
     def reset(self):
         self.vel = [0.0] * 4
@@ -107,7 +128,7 @@ def zero_outputs(st):
 def apply_report(st, data, now):
     if len(data) < REPORT.size:
         return False
-    f = REPORT.unpack(data[:REPORT.size])
+    f = REPORT.unpack(bytes(data[:REPORT.size]))  # bytes() = str on Python 2.7
     version, seq, flags, owner = f[0], f[1], f[2], f[3]
     vel, buttons, counts = f[4:8], f[8], f[9:13]
     if version != PROTOCOL:
@@ -136,10 +157,21 @@ def apply_report(st, data, now):
             st.steps[i] += d
             if d:
                 scale = c["jog-scale"]
-                if scale > 0:
-                    st.jog_acc[i] += d * c["step-size"] / scale
+                step = current_step()
+                if scale > 0 and step > 0:
+                    st.jog_acc[i] += d * step / scale
     st.last_raw_counts = list(counts)
     return True
+
+
+def current_step():
+    """Step distance in machine units (inch), or 0 to disable steps."""
+    if not c["step-follow"]:
+        return c["step-size"]
+    if c["is-metric"]:
+        return 0.0  # metric increments not mapped yet: steps off rather than wrong
+    i = c["gui-step-index"]
+    return INCH_STEPS[i] if 0 <= i < len(INCH_STEPS) else 0.0
 
 
 def integrate(st, dt):
@@ -152,6 +184,33 @@ def integrate(st, dt):
         st.jog_out[i] = whole
         c[a + "-jog-counts"] = whole
         c[a + "-steps"] = st.steps[i]
+
+
+def step_button(st, now):
+    """Relay the shuttle's step button and add a pulse for pendant Y."""
+    y = bool(c["btn-y"]) and c["connected"]
+    if y and not st.y_was and now >= st.lockout_until:
+        st.pulse_until = now + STEP_PULSE_S
+        st.lockout_until = now + STEP_LOCKOUT_S
+    st.y_was = y
+    c["step-button-out"] = bool(c["shuttle-step-in"]) or now < st.pulse_until
+
+
+def send_led(st, fd, now):
+    """Tell Pendulum which player LED to light: step index 0..3 -> LED 1..4."""
+    if fd is None:
+        st.led_sent = None
+        return
+    i = c["gui-step-index"]
+    led = (i + 1) if (c["step-follow"] and not c["is-metric"] and 0 <= i < 4) else 0
+    if led == st.led_sent and now - st.led_time < LED_RESEND_S:
+        return
+    try:
+        # hidraw: first byte is the report number (0 = no report IDs)
+        os.write(fd, bytes(bytearray([0, PROTOCOL, led, 0, 0, 0, 0, 0, 0])))
+        st.led_sent, st.led_time = led, now
+    except OSError:
+        st.led_time = now  # try again later; reads will notice a real unplug
 
 
 def main():
@@ -167,7 +226,10 @@ def main():
                 dev = find_device()
                 if dev:
                     try:
-                        fd = os.open(dev, os.O_RDONLY | os.O_NONBLOCK)
+                        try:
+                            fd = os.open(dev, os.O_RDWR | os.O_NONBLOCK)
+                        except OSError:
+                            fd = os.open(dev, os.O_RDONLY | os.O_NONBLOCK)  # no LEDs
                         log("opened %s" % dev)
                         st.last_report = now
                     except OSError as e:
@@ -188,6 +250,7 @@ def main():
                             os.close(fd)
                             fd = None
                             zero_outputs(st)
+                            st.led_sent = None
             else:
                 time.sleep(0.010)
 
@@ -200,6 +263,9 @@ def main():
                 c["motion"] = False
             c["connected"] = healthy
             integrate(st, min(now - last, 0.05))
+            c["step-active"] = current_step()
+            step_button(st, now)
+            send_led(st, fd, now)
             last = now
     except KeyboardInterrupt:
         pass

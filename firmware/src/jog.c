@@ -104,7 +104,50 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
     v[i] = raw[i] / 32767.0f;
     if ((c->invert >> i) & 1) v[i] = -v[i];
     if (c->map[i] >= AXIS_COUNT) v[i] = 0.0f;
-    if (fabsf(v[i]) >= rel) all_neutral = false;
+
+    // Raw deflection decides lockout and ownership release; debouncing only
+    // decides whether a channel may drive motion.
+    bool neutral = fabsf(v[i]) < rel;
+    if (!neutral) all_neutral = false;
+
+    if (neutral) {
+      // Release is never debounced: stop immediately.
+      s->live[i] = false;
+      s->pend_dir[i] = 0;
+      if (!s->was_neutral[i]) s->neutral_since[i] = now;
+      s->was_neutral[i] = true;
+      if (now - s->neutral_since[i] >= c->reverse_ms) s->last_dir[i] = 0;
+      continue;
+    }
+    s->was_neutral[i] = false;
+    int8_t dir = v[i] > 0 ? 1 : -1;
+
+    // Spring-back guard: a released stick overshoots past centre for a few
+    // ms. Ignore motion opposite to the last driven direction until the
+    // stick has rested at centre for reverse_ms.
+    if (c->reverse_ms && s->last_dir[i] && dir != s->last_dir[i]) {
+      v[i] = 0.0f;
+      s->live[i] = false;
+      s->pend_dir[i] = 0;
+      continue;
+    }
+
+    // Start debounce: the stick must stay deflected (same direction, past the
+    // claim threshold at the end) for start_ms before it drives anything.
+    // Finger slips and grazes shorter than that do nothing.
+    if (!s->live[i]) {
+      if (s->pend_dir[i] != dir) {
+        s->pend_dir[i] = dir;
+        s->deflect_since[i] = now;
+      }
+      if (now - s->deflect_since[i] >= c->start_ms && fabsf(v[i]) >= claim) {
+        s->live[i] = true;
+      } else {
+        v[i] = 0.0f;
+        continue;
+      }
+    }
+    s->last_dir[i] = dir;
   }
 
   // ---- Neutral-at-connect lockout ----
@@ -133,12 +176,18 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
   bool step_held[STEP_COUNT];
   bool any_step_held = false;
   for (int k = 0; k < STEP_COUNT; k++) {
-    step_held[k] = c->dpad_enable && (p->buttons & step_btn[k]) && !(step_btn[k] & dm_btn);
-    if (step_held[k]) any_step_held = true;
+    bool down = c->dpad_enable && (p->buttons & step_btn[k]) && !(step_btn[k] & dm_btn);
+    if (down && !s->step_was_down[k]) s->step_down_since[k] = now;
+    s->step_was_down[k] = down;
+    if (down) any_step_held = true;  // raw: keeps ownership while pressed
+    // debounced: a press must be held step_ms before it counts
+    step_held[k] = down && now - s->step_down_since[k] >= c->step_ms;
   }
 
-  // ---- Claim ownership ----
-  if (s->owner < 0) {
+  const bool free_mode = c->mode == MODE_FREE;
+
+  // ---- Claim ownership (not used in free mode) ----
+  if (!free_mode && s->owner < 0) {
     float best = 0.0f;
     for (int i = 0; i < CH_COUNT; i++) {
       float a = fabsf(v[i]);
@@ -157,11 +206,12 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
     }
   }
 
-  // ---- Velocity from sticks in the owning group ----
-  if (s->owner >= 0) {
+  // ---- Velocity: owning group only, or every axis in free mode ----
+  if (free_mode || s->owner >= 0) {
     float vel[AXIS_COUNT] = {0};
     for (int i = 0; i < CH_COUNT; i++) {
-      if (group_of(c->map[i], c->mode) == s->owner) vel[c->map[i]] += shape(v[i], c);
+      if (c->map[i] >= AXIS_COUNT) continue;
+      if (free_mode || group_of(c->map[i], c->mode) == s->owner) vel[c->map[i]] += shape(v[i], c);
     }
     for (int a = 0; a < AXIS_COUNT; a++) {
       if (vel[a] > 1.0f) vel[a] = 1.0f;
@@ -175,21 +225,26 @@ int jog_step(jog_state_t *s, const pad_state_t *p, const pendulum_config_t *c,
   uint32_t period = 1000u / (c->repeat_hz ? c->repeat_hz : 1);
   for (int k = 0; k < STEP_COUNT; k++) {
     if (!step_held[k]) { s->step_state[k] = 0; continue; }
-    bool eligible = s->owner >= 0 && group_of(step_axis[k], c->mode) == s->owner;
+    bool eligible = free_mode ||
+                    (s->owner >= 0 && group_of(step_axis[k], c->mode) == s->owner);
+    // a step goes the same way as the stick mapped to that axis
+    int8_t dir = step_dir[k];
+    for (int i = 0; i < CH_COUNT; i++)
+      if (c->map[i] == step_axis[k] && ((c->invert >> i) & 1)) { dir = (int8_t)-dir; break; }
     if (s->step_state[k] == 0) {
       if (!eligible) { s->step_state[k] = 2; continue; }  // pressed while another axis owns
       s->step_state[k] = 1;
-      s->counts[step_axis[k]] += step_dir[k];
+      s->counts[step_axis[k]] += dir;
       s->step_next_ms[k] = now + c->repeat_delay_ms;
     } else if (s->step_state[k] == 1 && eligible &&
                (int32_t)(now - s->step_next_ms[k]) >= 0) {
-      s->counts[step_axis[k]] += step_dir[k];
+      s->counts[step_axis[k]] += dir;
       s->step_next_ms[k] += period;
     }
   }
 
   // ---- Release ownership when everything is back to neutral ----
-  if (s->owner >= 0) out->owner = (uint8_t)s->owner;
+  if (!free_mode && s->owner >= 0) out->owner = (uint8_t)s->owner;
   if (all_neutral && !any_step_held) s->owner = -1;
 
   memcpy(out->counts, s->counts, sizeof out->counts);

@@ -1,34 +1,53 @@
-# pendulum.hal - wiring for the pendulum jog adapter.
-# Loaded at runtime by attach.sh after the pendulum component is running.
-# NOTHING in PathPilot's own config files is changed.
+# pendulum.hal - wiring for the Pendulum jog adapter.
+# Loaded by attach.sh (with -i <ini>, so [AXIS_n] values resolve) after the
+# pendulum component is running. NOTHING in PathPilot's own files changes.
 #
-# STATUS: DRAFT. The target pins below are standard LinuxCNC 2.8 names and
-# must be confirmed against probe.txt from your controller before use.
-# Run probe.sh, send the output, and this file gets finalized.
+# Based on probe.txt from PathPilot v2.14.3 / LinuxCNC 2.8.0~pre1 (2026-10-25):
+#   - PathPilot jogs from Python via tormach.* pins (ShuttleXpress, console);
+#     motion's hand-wheel inputs axis.0-2.jog-counts are unconnected, so
+#     Pendulum drives those. The real ShuttleXpress is untouched.
+#   - Units: inch. Max jog X/Y 1.833 in/s, Z 1.5 in/s, accel 15 in/s^2.
 #
-# Units: PCNC 1100 machine units are inches.
-
-# ---- Tuning ---------------------------------------------------------------
-setp pendulum.jog-scale  0.0001   # inches per jog count
-setp pendulum.max-speed  1.0      # inches/second at full stick (60 IPM) - start low
-setp pendulum.step-size  0.001    # inches per D-pad press
-
-# ---- Jogging (MPG-style, through motion's jog-counts inputs) --------------
-# These lines only work if the probe shows axis.<L>.jog-counts unconnected.
-# If PathPilot already drives them, they must be merged instead (do not run
-# this file until probe.txt has been checked).
+# Wheel jogging only acts in manual mode with the machine on; motion still
+# enforces soft limits, acceleration and feed override.
 #
-# net pendulum-x-counts pendulum.x-jog-counts => axis.x.jog-counts
-# net pendulum-y-counts pendulum.y-jog-counts => axis.y.jog-counts
-# net pendulum-z-counts pendulum.z-jog-counts => axis.z.jog-counts
-# setp axis.x.jog-scale 0.0001
-# setp axis.y.jog-scale 0.0001
-# setp axis.z.jog-scale 0.0001
-# setp axis.x.jog-vel-mode 0
-# setp axis.y.jog-vel-mode 0
-# setp axis.z.jog-vel-mode 0
-# net pendulum-ok pendulum.connected => axis.x.jog-enable axis.y.jog-enable axis.z.jog-enable
+# The jog-enable inputs are NOT connected here: attach.sh connects them last,
+# after the counters, so a counter jump while wiring can never cause motion.
 
-# ---- Step size from PathPilot (optional) ----------------------------------
-# PathPilot exposes its selected jog increment for the shuttle. Once the probe
-# shows the signal name, pendulum.step-size can follow it instead of the setp.
+# ---- Tuning -------------------------------------------------------------
+# max-speed: Ian's choice after first runs (cap: 1.5 = Z limit).
+setp pendulum.jog-scale  0.0001   # inches per count (must match axis.N.jog-scale)
+setp pendulum.max-speed  0.667    # inches/second at full stick (40 IPM)
+setp pendulum.step-size  0.001    # inches per D-pad / bumper step (only if step-follow 0)
+setp pendulum.step-follow 1       # D-pad step = PathPilot's selected increment
+
+# ---- Motion hand-wheel inputs ------------------------------------------
+setp axis.0.jog-scale 0.0001
+setp axis.1.jog-scale 0.0001
+setp axis.2.jog-scale 0.0001
+
+# Velocity mode: motion never lets the target run further ahead than it can
+# stop from, so releasing the stick stops promptly instead of finishing a
+# long queued move.
+setp axis.0.jog-vel-mode 1
+setp axis.1.jog-vel-mode 1
+setp axis.2.jog-vel-mode 1
+
+# Tormach-specific per-axis hand-wheel speed limit (defaults to 0).
+setp axis.0.jog-max-vel [AXIS_0]MAX_JOG_VELOCITY_UPS
+setp axis.1.jog-max-vel [AXIS_1]MAX_JOG_VELOCITY_UPS
+setp axis.2.jog-max-vel [AXIS_2]MAX_JOG_VELOCITY_UPS
+
+net pendulum-x-counts pendulum.x-jog-counts => axis.0.jog-counts
+net pendulum-y-counts pendulum.y-jog-counts => axis.1.jog-counts
+net pendulum-z-counts pendulum.z-jog-counts => axis.2.jog-counts
+
+# ---- Follow PathPilot's jog increment ------------------------------------
+# PathPilot publishes the selected step (.0001/.001/.01/.1 = 0/1/2/3) and the
+# metric flag on these signals for the ShuttleXpress; pendulum listens too and
+# lights pendant LED 1-4 to match. (In metric, pendant steps are off for now.)
+net sxp.gui_step_index pendulum.gui-step-index
+net sxp.is_metric      pendulum.is-metric
+
+# The step-button relay (pendant Y + ShuttleXpress step button ->
+# tormach.jog-step-button) and the jog enables are wired by attach.sh.

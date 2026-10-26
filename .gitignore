@@ -4,3 +4,5 @@ firmware/test_jog
 *.uf2
 __pycache__/
 *.pyc
+pendulum-*.patch
+.DS_Store

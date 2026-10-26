@@ -10,26 +10,32 @@ include(pico_sdk_import.cmake)
 project(pendulum C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 
-pico_sdk_init()
-
 include(FetchContent)
+
+# TinyUSB 0.21.0 instead of the copy inside the Pico SDK (0.18). 0.19+ reads
+# the language/manufacturer/product/serial strings during enumeration, before
+# SET_CONFIGURATION, like Windows does. The 8BitDo SN30 Pro sends no input
+# without that. Must be set before pico_sdk_init().
+FetchContent_Declare(tinyusb_src
+  GIT_REPOSITORY https://github.com/hathach/tinyusb.git
+  GIT_TAG        dae3f9a366bfcddbf9dcf1b48d7500286a849539  # 0.21.0
+  GIT_SHALLOW    FALSE)
+FetchContent_GetProperties(tinyusb_src)
+if(NOT tinyusb_src_POPULATED)
+  FetchContent_Populate(tinyusb_src)
+endif()
+set(PICO_TINYUSB_PATH ${tinyusb_src_SOURCE_DIR})
+
+pico_sdk_init()
 
 # Pico-PIO-USB: software USB host on two GPIO pins (the gamepad port).
 FetchContent_Declare(pico_pio_usb_src
   GIT_REPOSITORY https://github.com/sekigon-gonnoc/Pico-PIO-USB.git
-  GIT_TAG        5a37a66dc5d3fbe0ef3cdbeda923a757440f984f)
-# tusb_xinput: TinyUSB host class driver for XInput (Xbox-style) gamepads.
-# Pinned to the last commit for TinyUSB 0.18 (what Pico SDK 2.1.x ships).
-FetchContent_Declare(tusb_xinput_src
-  GIT_REPOSITORY https://github.com/Ryzee119/tusb_xinput.git
-  GIT_TAG        cfd83ba9b0809cf69f7b63d351f44ff73ebd0e30)
+  # the version TinyUSB 0.21.0 pins
+  GIT_TAG        675543bcc9baa8170f868ab7ba316d418dbcf41f)
 FetchContent_GetProperties(pico_pio_usb_src)
 if(NOT pico_pio_usb_src_POPULATED)
   FetchContent_Populate(pico_pio_usb_src)
-endif()
-FetchContent_GetProperties(tusb_xinput_src)
-if(NOT tusb_xinput_src_POPULATED)
-  FetchContent_Populate(tusb_xinput_src)
 endif()
 
 add_subdirectory(${pico_pio_usb_src_SOURCE_DIR} pico_pio_usb)
@@ -56,13 +62,13 @@ add_executable(pendulum
   src/usb_descriptors.c
   src/msc_disk.c
   ${DISK_C}
-  ${tusb_xinput_src_SOURCE_DIR}/xinput_host.c
+  lib/tusb_xinput/xinput_host.c
   ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/hcd_pio_usb.c
 )
 
 target_include_directories(pendulum PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/src
-  ${tusb_xinput_src_SOURCE_DIR})
+  ${CMAKE_CURRENT_LIST_DIR}/lib/tusb_xinput)
 
 target_compile_definitions(pendulum PRIVATE PIO_USB_USE_TINYUSB)
 target_compile_options(pendulum PRIVATE -Wall)

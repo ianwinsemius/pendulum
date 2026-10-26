@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define PENDULUM_FW_VERSION   "0.1.2"
+#define PENDULUM_FW_VERSION   "0.4.0"
 
 // USB identity. 0x1209 is pid.codes; 0x0001/0x0002 are its test PIDs.
 // Fine for your own shop. Get a real PID before distributing hardware.
@@ -42,6 +42,23 @@ typedef struct __attribute__((packed)) {
 _Static_assert(sizeof(pendulum_report_t) == 20, "report must be 20 bytes");
 
 // ---------------------------------------------------------------------------
+// Host -> Pendulum report (HID output report, no report ID), version 1.
+// Written by pendulum.py through /dev/hidraw. Anything else is ignored.
+// ---------------------------------------------------------------------------
+typedef struct __attribute__((packed)) {
+  uint8_t  version;     // PENDULUM_PROTOCOL_VERSION
+  uint8_t  led;         // 0 = all off, 1..4 = player LED 1..4
+  uint8_t  rumble;      // 0..255, short buzz (reserved, not used yet)
+  uint8_t  reserved[5];
+} pendulum_out_report_t;
+
+_Static_assert(sizeof(pendulum_out_report_t) == 8, "out report must be 8 bytes");
+
+// pad.c: LED requested by the host (0..4), applied by core 1.
+void pad_request_led(uint8_t led);
+uint8_t pad_current_led(void);
+
+// ---------------------------------------------------------------------------
 // Normalized pendant state, written by the host core, read by the main loop.
 // Buttons use the XInput bit layout whatever the source device.
 // ---------------------------------------------------------------------------
@@ -75,9 +92,11 @@ typedef struct {
 
 // pad.c
 void pad_get(pad_state_t *out);
-void pad_set_log(bool on);
+void pad_set_log(uint8_t mode);  // 0 off, 1 changes, 2 raw
+extern volatile bool g_jog_log;
 void host_core_main(void);
 void pad_init(void);
+uint32_t pad_raw_count(void);
 void pad_get_diag(uint32_t *reports, uint32_t *errors, uint32_t *rearm_fail,
                   bool *armed, uint8_t *err);
 

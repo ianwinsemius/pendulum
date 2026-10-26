@@ -9,20 +9,22 @@ On the PathPilot controller, open a terminal and run:
 
 Then unplug and replug Pendulum. It comes back in run mode.
 
-After a PathPilot update: hold Back+Start on the pendant for 3 seconds to
+After a PathPilot update: hold Select+Start on the pendant for 3 seconds to
 get this drive back, and run install.sh again.
 
 Files
   install.sh      install or reinstall (safe to repeat)
   uninst.sh       remove everything install.sh added
   probe.sh        read-only report of this controller's HAL setup
+  ppenv.sh        borrows PathPilot's LinuxCNC environment (used by the others)
+  ppwire.sh       undoes Pendulum's wiring safely (used by the others)
   pendulum.py     the HAL component that reads Pendulum
   pendulum.hal    wiring and tuning
   attach.sh       loads pendulum into a running PathPilot
   watch.sh        keeps pendulum loaded across PathPilot restarts
   pendulum.rul    udev rule (installed as 99-pendulum.rules)
 
-Pendant combos (hold Back + ...)
+Pendant combos (hold Select + ...)
   Start, 3 s          switch run / config (this drive) mode
   Start+LB+RB, 3 s    firmware update mode (RPI-RP2 drive)
 

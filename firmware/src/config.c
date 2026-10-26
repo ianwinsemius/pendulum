@@ -13,7 +13,7 @@
 #include "config.h"
 
 #define CFG_MAGIC  0x504E444Cu  // "PNDL"
-#define CFG_LAYOUT 1
+#define CFG_LAYOUT 4  // bump on struct change: old saved settings reset to defaults
 #define CFG_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
 pendulum_config_t g_cfg;
@@ -39,17 +39,22 @@ void config_defaults(pendulum_config_t *c) {
   c->release_pct = 8;
   c->expo_pct = 40;
   c->max_pct = 100;
-  c->mode = MODE_PLANAR;      // X+Y together allowed, Z on its own
+  c->mode = MODE_FREE;        // every axis independent (planar: X+Y together, Z alone)
   c->deadman = DM_NONE;
   c->map[CH_LX] = AXIS_X;
   c->map[CH_LY] = AXIS_Y;
   c->map[CH_RX] = AXIS_NONE;  // would be A on a 4th-axis machine
   c->map[CH_RY] = AXIS_Z;
-  c->invert = 0;
+  // Sticks follow the table on the PCNC 1100: stick right = table right = X-,
+  // stick up = table away = Y-. Z: stick up = spindle up = Z+.
+  c->invert = (1u << CH_LX) | (1u << CH_LY);
   c->dpad_enable = 1;
   c->repeat_delay_ms = 400;
   c->repeat_hz = 8;
   c->combo_ms = 3000;
+  c->reverse_ms = 100;
+  c->start_ms = 80;
+  c->step_ms = 40;
   memset(c->hid_axis_off, 0xFF, sizeof(c->hid_axis_off));
   c->hid_invert = 0;
   c->crc = cfg_crc(c);
@@ -95,7 +100,9 @@ static const char *axis_name(uint8_t a) {
     default: return "none";
   }
 }
-static const char *mode_name(uint8_t m) { return m == MODE_SINGLE ? "single" : "planar"; }
+static const char *mode_name(uint8_t m) {
+  return m == MODE_SINGLE ? "single" : m == MODE_FREE ? "free" : "planar";
+}
 static const char *dm_name(uint8_t d) {
   static const char *n[] = {"none", "lt", "rt", "lb", "rb"};
   return d <= DM_RB ? n[d] : "none";
@@ -109,7 +116,7 @@ void config_show(void (*out)(const char *)) {
   P("release %u      # %% below which a stick is neutral\r\n", g_cfg.release_pct);
   P("expo %u         # 0 linear .. 100 cubic\r\n", g_cfg.expo_pct);
   P("max %u          # %% cap on jog speed\r\n", g_cfg.max_pct);
-  P("mode %s     # single | planar\r\n", mode_name(g_cfg.mode));
+  P("mode %s     # free | planar | single\r\n", mode_name(g_cfg.mode));
   P("deadman %s     # none | lt | rt | lb | rb\r\n", dm_name(g_cfg.deadman));
   for (int i = 0; i < CH_COUNT; i++)
     P("map.%s %s%s\r\n", ch_key[i], axis_name(g_cfg.map[i]),
@@ -118,6 +125,9 @@ void config_show(void (*out)(const char *)) {
   P("repeat_delay %u\r\n", g_cfg.repeat_delay_ms);
   P("repeat_hz %u\r\n", g_cfg.repeat_hz);
   P("combo_ms %u\r\n", g_cfg.combo_ms);
+  P("reverse_ms %u    # centre dwell before a stick may reverse\r\n", g_cfg.reverse_ms);
+  P("start_ms %u       # hold time before a stick starts a jog\r\n", g_cfg.start_ms);
+  P("step_ms %u        # hold time before a D-pad/bumper press steps\r\n", g_cfg.step_ms);
   for (int i = 0; i < CH_COUNT; i++) {
     if (g_cfg.hid_axis_off[i] == 0xFF) P("hid.%s off\r\n", ch_key[i]);
     else P("hid.%s %u%s\r\n", ch_key[i], g_cfg.hid_axis_off[i],
@@ -156,7 +166,8 @@ const char *config_set(const char *key, const char *val) {
   } else if (!strcasecmp(key, "mode")) {
     if (!strcasecmp(val, "single")) g_cfg.mode = MODE_SINGLE;
     else if (!strcasecmp(val, "planar")) g_cfg.mode = MODE_PLANAR;
-    else return "mode: single | planar";
+    else if (!strcasecmp(val, "free")) g_cfg.mode = MODE_FREE;
+    else return "mode: free | planar | single";
   } else if (!strcasecmp(key, "deadman")) {
     static const char *n[] = {"none", "lt", "rt", "lb", "rb"};
     int found = -1;
@@ -187,6 +198,15 @@ const char *config_set(const char *key, const char *val) {
   } else if (!strcasecmp(key, "repeat_hz")) {
     if (!parse_uint(val, 1, 50, &v)) return "repeat_hz: 1..50";
     g_cfg.repeat_hz = v;
+  } else if (!strcasecmp(key, "start_ms")) {
+    if (!parse_uint(val, 0, 500, &v)) return "start_ms: 0..500";
+    g_cfg.start_ms = v;
+  } else if (!strcasecmp(key, "step_ms")) {
+    if (!parse_uint(val, 0, 500, &v)) return "step_ms: 0..500";
+    g_cfg.step_ms = v;
+  } else if (!strcasecmp(key, "reverse_ms")) {
+    if (!parse_uint(val, 0, 1000, &v)) return "reverse_ms: 0..1000";
+    g_cfg.reverse_ms = v;
   } else if (!strcasecmp(key, "combo_ms")) {
     if (!parse_uint(val, 1000, 10000, &v)) return "combo_ms: 1000..10000";
     g_cfg.combo_ms = v;
